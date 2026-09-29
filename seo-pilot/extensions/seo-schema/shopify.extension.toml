@@ -1,0 +1,6 @@
+# Theme App Extension: injects JSON-LD structured data (schema.org) as an
+# app embed. Merchants turn it on in Theme Editor > App embeds — Shopify
+# doesn't allow apps to inject markup into a theme without that explicit,
+# merchant-visible opt-in.
+name = "SEO Pilot: Schema"
+type = "theme"

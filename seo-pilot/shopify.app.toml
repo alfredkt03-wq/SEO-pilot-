@@ -1,0 +1,56 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = ""
+name = "SEO Pilot"
+handle = "seo-pilot"
+application_url = "https://your-app-url.example.com"
+embedded = true
+
+[access_scopes]
+# SEO title/description + image alt text (write_products)
+# Page & blog SEO fields (write_content)
+# Redirect manager (write_online_store_navigation)
+scopes = "write_products,write_content,write_online_store_navigation"
+
+[auth]
+redirect_urls = [
+  "https://your-app-url.example.com/auth/callback",
+  "https://your-app-url.example.com/auth/shopify/callback",
+  "https://your-app-url.example.com/api/auth/callback"
+]
+
+[webhooks]
+api_version = "2025-10"
+
+  [[webhooks.subscriptions]]
+  topics = ["app/uninstalled"]
+  uri = "/webhooks/app/uninstalled"
+
+  # New product autopilot (Premium and above)
+  [[webhooks.subscriptions]]
+  topics = ["products/create"]
+  uri = "/webhooks/products/create"
+
+  [[webhooks.subscriptions]]
+  topics = ["app/scopes_update"]
+  uri = "/webhooks/app/scopes_update"
+
+  # Mandatory privacy (GDPR) webhooks — required for the Shopify App Store
+  [[webhooks.subscriptions]]
+  uri = "/webhooks/customers/data_request"
+  compliance_topics = ["customers/data_request"]
+
+  [[webhooks.subscriptions]]
+  uri = "/webhooks/customers/redact"
+  compliance_topics = ["customers/redact"]
+
+  [[webhooks.subscriptions]]
+  uri = "/webhooks/shop/redact"
+  compliance_topics = ["shop/redact"]
+
+[pos]
+embedded = false
+
+[build]
+automatically_update_urls_on_dev = true
+include_config_on_deploy = true

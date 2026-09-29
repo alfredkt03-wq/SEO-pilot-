@@ -1,0 +1,118 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Postgres in every environment — local development and production both point
+// at a Neon database via DATABASE_URL. SQLite was used during early local
+// development, but it can't be used in production: the host's filesystem is
+// wiped on each deploy, which would sign every merchant out and lose their
+// scan history.
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Session {
+  id            String    @id
+  shop          String
+  state         String
+  isOnline      Boolean   @default(false)
+  scope         String?
+  expires       DateTime?
+  accessToken   String
+  userId        BigInt?
+  firstName     String?
+  lastName      String?
+  email         String?
+  accountOwner  Boolean   @default(false)
+  locale        String?
+  collaborator  Boolean?  @default(false)
+  emailVerified Boolean?  @default(false)
+  refreshToken        String?
+  refreshTokenExpires DateTime?
+}
+
+// One row per shop, updated after every scan
+model SeoScan {
+  id              String   @id @default(cuid())
+  shop            String   @unique
+  score           Int
+  productsScanned Int
+  pagesScanned    Int
+  collectionsScanned Int
+  totalIssues     Int
+  sitemapOk       Boolean  @default(true)
+  scannedAt       DateTime @default(now())
+  // Score from the scan before this one, so the dashboard can show progress
+  previousScore   Int?
+}
+
+// Individual findings from the most recent scan for a shop.
+// Re-scanning replaces all rows for that shop.
+model SeoIssue {
+  id             String   @id @default(cuid())
+  shop           String
+  resourceType   String // PRODUCT | PAGE | COLLECTION | HOMEPAGE
+  resourceId     String // Shopify GID
+  resourceTitle  String
+  resourceHandle String
+  imageId        String? // MediaImage GID, set for MISSING_ALT_TEXT and OVERSIZED_IMAGE issues
+  brokenLinkPath String? // internal path the broken link points to, only set for BROKEN_INTERNAL_LINK
+  type           String // MISSING_SEO_TITLE | SEO_TITLE_TOO_LONG | ...
+  severity       String // HIGH | MEDIUM | LOW
+  message        String
+  suggestion     String?
+  aiGenerated    Boolean  @default(false) // suggestion was written by AI (shown with an "AI" badge)
+  fixed          Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  @@index([shop])
+  @@index([shop, fixed])
+}
+
+// One row per shop tracking trial/subscription state we care about in-app,
+// plus lifetime counters for the dashboard's "impact" summary. These are
+// simple running totals (not a time-series log) — cheap to maintain, and
+// deliberately labeled "since you installed" rather than "this month" on
+// the dashboard so the copy never claims more precision than the data has.
+model ShopSettings {
+  shop                  String   @id
+  brandName             String?
+  // Exclusive/Agency opt-in: write SEO title + description for new products automatically.
+  autoOptimizeNew       Boolean  @default(false)
+  totalFixesApplied     Int      @default(0)
+  totalRedirectsCreated Int      @default(0)
+  onboardedAt           DateTime @default(now())
+  // Cached from Shopify on first use (see billing.server.ts). billingCurrency
+  // decides the plan price (INR → ₹ plan); storeCurrency "INR" switches
+  // suggestions to India-specific wording.
+  billingCurrency       String?
+  storeCurrency         String?
+  // AI writing allowance (see plans.ts). aiCreditsUsedTotal counts every
+  // credit ever used (the Free allowance is lifetime); the Month pair counts
+  // credits used in aiCreditsMonth ("2026-09"), for Basic's monthly allowance.
+  aiCreditsUsedTotal    Int      @default(0)
+  aiCreditsMonth        String?
+  aiCreditsUsedMonth    Int      @default(0)
+  // Latest mobile speed check (Google PageSpeed Insights), run on demand
+  speedScore            Int?
+  speedLcp              String?
+  speedCls              String?
+  speedTbt              String?
+  speedCheckedAt        DateTime?
+  // Google Search Console connection (Premium/Exclusive only). Only the
+  // refresh token is stored — access tokens are short-lived and fetched on
+  // demand from it. gscSiteUrl is the verified property Google returned
+  // ("sc-domain:example.com" or "https://shop.myshopify.com/"). The last
+  // fetched stats are cached so the page doesn't call Google on every view.
+  gscRefreshToken       String?
+  gscSiteUrl            String?
+  gscConnectedAt        DateTime?
+  gscLastCheckedAt      DateTime?
+  gscClicks28d          Int?
+  gscImpressions28d     Int?
+  gscTopQueries         String? // JSON array of {query, clicks, impressions}
+}
