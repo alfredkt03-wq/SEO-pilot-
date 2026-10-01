@@ -2,7 +2,7 @@
 
 client_id = "3a2817666654540b47ef99b02f438850"
 name = "SEO Pilot"
-handle = "seo-pilot"
+handle = "seo-pilot-fixer"
 application_url = "https://seo-pilot-l7ay.onrender.com"
 embedded = true
 
@@ -54,4 +54,3 @@ embedded = false
 
 [build]
 automatically_update_urls_on_dev = true
-include_config_on_deploy = true
