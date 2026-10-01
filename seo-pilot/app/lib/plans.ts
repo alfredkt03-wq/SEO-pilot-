@@ -16,7 +16,7 @@ export type PaidTier = Exclude<Tier, "free">;
 
 export const PLANS = {
   basic: { usd: "SEO Pilot Basic", inr: "SEO Pilot Basic India", priceUsd: 3.89, priceInr: 309 },
-  premium: { usd: "SEO Pilot Premium", inr: "SEO Pilot Premium India", priceUsd: 12.99, priceInr: 1099 },
+  premium: { usd: "SEO Pilot Premium", inr: "SEO Pilot Premium India", priceUsd: 17.99, priceInr: 1499 },
   exclusive: { usd: "SEO Pilot Exclusive", inr: "SEO Pilot Exclusive India", priceUsd: 29, priceInr: 2499 },
   agency: { usd: "SEO Pilot Agency", inr: "SEO Pilot Agency India", priceUsd: 59, priceInr: 4999 },
 } as const;
