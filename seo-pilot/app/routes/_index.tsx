@@ -87,7 +87,7 @@ export default function Index() {
           <div className="pp-wrap">
             <section className="pp-hero">
               <div>
-                <span className="pp-eyebrow">Made for growing Indian stores</span>
+                <span className="pp-eyebrow">Shopify SEO, made simple</span>
                 <h1>
                   Fix the <em>SEO gaps</em> keeping your store out of Google
                 </h1>
@@ -116,13 +116,13 @@ export default function Index() {
                 </div>
                 <div className="pp-mock-score">
                   <svg width="84" height="84" viewBox="0 0 84 84" aria-hidden="true">
-                    <circle cx="42" cy="42" r="34" fill="none" stroke="#e8eee2" strokeWidth="9" />
+                    <circle cx="42" cy="42" r="34" fill="none" stroke="#e2d6c1" strokeWidth="9" />
                     <circle
                       cx="42"
                       cy="42"
                       r="34"
                       fill="none"
-                      stroke="#167a44"
+                      stroke="#b8893b"
                       strokeWidth="9"
                       strokeLinecap="round"
                       strokeDasharray="213.6"
