@@ -88,7 +88,7 @@ export default function Images() {
       {!hasActivePayment && (
         <s-banner heading="Subscription required" tone="warning">
           <s-paragraph>
-            Compressing images needs Basic or Pro. Start a {TRIAL_DAYS}-day free trial to try it.
+            Compressing images needs an active plan. Start a {TRIAL_DAYS}-day free trial to try it.
           </s-paragraph>
           <s-button slot="secondary-actions" href="/app/billing">
             View plan

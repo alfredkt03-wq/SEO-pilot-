@@ -653,7 +653,7 @@ export default function Dashboard() {
           </s-paragraph>
           <s-paragraph>
             <s-link href="/app/redirects">Redirect manager</s-link> — fix broken links (404s) with
-            proper 301 redirects. Free.
+            proper 301 redirects. Included in every plan.
           </s-paragraph>
           <s-paragraph>
             <s-text type="strong">Structured data (JSON-LD)</s-text> — a theme app embed that adds
