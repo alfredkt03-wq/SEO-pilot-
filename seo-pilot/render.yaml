@@ -1,4 +1,4 @@
-# Render deployment blueprint for SEO Pilot.
+# Render deployment blueprint for Metaglow SEO.
 #
 # The database is NOT defined here on purpose — it lives on Neon, whose free
 # tier doesn't expire (Render's free Postgres is deleted after 30 days, which

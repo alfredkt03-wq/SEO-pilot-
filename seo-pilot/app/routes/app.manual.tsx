@@ -82,7 +82,7 @@ const PAGES: Array<{ name: string; body: string }> = [
 
 export default function Manual() {
   return (
-    <s-page heading="How to use SEO Pilot">
+    <s-page heading="How to use Metaglow SEO">
       <s-section heading="First, what is SEO?">
         <s-paragraph>
           SEO means making your shop easy for Google to understand, so more people find you when they
@@ -93,7 +93,7 @@ export default function Manual() {
           understands your shop less well and shows it less often.
         </s-paragraph>
         <s-paragraph>
-          SEO Pilot checks all of that for you, tells you what is missing in plain words, and fixes
+          Metaglow SEO checks all of that for you, tells you what is missing in plain words, and fixes
           most of it in a click. You don't need to learn anything else to use it.
         </s-paragraph>
       </s-section>
@@ -178,7 +178,7 @@ export default function Manual() {
       <s-section heading="Common questions">
         <s-paragraph>
           <s-text type="strong">Will my shop rank first on Google?</s-text> Nobody can promise that,
-          and SEO Pilot doesn't. It removes the gaps that hold a shop back. Google decides the rest,
+          and Metaglow SEO doesn't. It removes the gaps that hold a shop back. Google decides the rest,
           and changes usually take a few weeks to show.
         </s-paragraph>
         <s-paragraph>

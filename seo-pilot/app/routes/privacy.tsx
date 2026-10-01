@@ -8,6 +8,11 @@ import { PublicFonts, PublicShell } from "../components/public-shell";
 
 const LAST_UPDATED = "September 27, 2026";
 
+export const meta = () => [
+  { title: "Privacy Policy - Metaglow SEO" },
+  { name: "description", content: "How Metaglow SEO handles store data: what it reads, what it stores and how to remove it." },
+];
+
 export default function Privacy() {
   return (
     <>
@@ -18,9 +23,9 @@ export default function Privacy() {
           <div className="pp-updated">Last updated: {LAST_UPDATED}</div>
 
           <section>
-            <h2>SEO Pilot Privacy Policy</h2>
+            <h2>Metaglow SEO Privacy Policy</h2>
             <p>
-              SEO Pilot ("the app") is a Shopify app that scans a store's products, collections and
+              Metaglow SEO ("the app") is a Shopify app that scans a store's products, collections and
               pages for SEO issues and helps fix them. This page explains what data the app accesses,
               why, and what happens to it.
             </p>
@@ -29,7 +34,7 @@ export default function Privacy() {
           <section>
             <h2>What the app can access</h2>
             <p>
-              SEO Pilot requests these Shopify Admin API scopes: <strong>write_products</strong>,{" "}
+              Metaglow SEO requests these Shopify Admin API scopes: <strong>write_products</strong>,{" "}
               <strong>write_content</strong>, <strong>write_online_store_navigation</strong>, and{" "}
               <strong>write_files</strong> (for image alt text and compressed image copies). In
               plain terms, that's your products, pages, collections, blog content, images, and URL
@@ -103,7 +108,7 @@ export default function Privacy() {
           <section>
             <h2>Data retention and deletion</h2>
             <p>
-              Your data is kept only while the app is installed. If you uninstall SEO Pilot, Shopify
+              Your data is kept only while the app is installed. If you uninstall Metaglow SEO, Shopify
               notifies the app automatically and all stored data for your shop — access tokens, scan
               history, Google Search Console tokens — is deleted. The app also honors Shopify's
               mandatory data-request and customer-redaction webhooks; since it never stores customer

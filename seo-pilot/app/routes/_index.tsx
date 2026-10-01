@@ -1,4 +1,4 @@
-import type { LoaderFunctionArgs } from "react-router";
+﻿import type { LoaderFunctionArgs } from "react-router";
 import { redirect, useLoaderData } from "react-router";
 
 import { PLANS, planFeatures, TIER_LABEL, TRIAL_DAYS } from "../lib/plans";
@@ -9,14 +9,14 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   // Shopify Admin opens the app at "/" with the shop handle in the query
   // string. Hand straight off to the embedded dashboard, forwarding every
-  // parameter — App Bridge needs `host` and `embedded` to set up the session,
+  // parameter â€” App Bridge needs `host` and `embedded` to set up the session,
   // so they can't be dropped here.
   if (url.searchParams.get("shop")) {
     throw redirect(`/app?${url.searchParams.toString()}`);
   }
 
   // Merchants install from the Shopify App Store, where Shopify itself
-  // handles the install and tells the app which store it is — so this page
+  // handles the install and tells the app which store it is â€” so this page
   // has no store-address form. Set SHOPIFY_APP_STORE_URL (in Render) to the
   // listing URL once it exists; until then the page says "coming soon".
   return { appStoreUrl: process.env.SHOPIFY_APP_STORE_URL || null };
@@ -46,7 +46,7 @@ const STEPS = [
 ];
 
 const FEATURES: Array<{ title: string; body: string; icon: string; tone: "green" | "gold" }> = [
-  { title: "Full-store scan", body: "Products, collections, pages and homepage — checked for titles, meta descriptions, alt text and thin content.", icon: SCAN, tone: "green" },
+  { title: "Full-store scan", body: "Products, collections, pages and homepage â€” checked for titles, meta descriptions, alt text and thin content.", icon: SCAN, tone: "green" },
   { title: "One-click fixes", body: "Template or AI-written fixes. You confirm before anything changes on your store.", icon: WRENCH, tone: "gold" },
   { title: "Broken links & redirects", body: "Finds dead links and sends visitors to the right page, without touching your theme code.", icon: LINK, tone: "green" },
   { title: "Internal links", body: "Finds pages that mention another page without linking to it and adds the link in one click.", icon: LINK, tone: "gold" },
@@ -76,6 +76,11 @@ function GetApp({ appStoreUrl, onLight = false }: { appStoreUrl: string | null; 
   return null;
 }
 
+export const meta = () => [
+  { title: "Metaglow SEO - Find and fix Shopify SEO problems" },
+  { name: "description", content: "Scan your Shopify store for missing titles, weak meta descriptions and image alt text, then fix them in a few clicks." },
+];
+
 export default function Index() {
   const { appStoreUrl } = useLoaderData<typeof loader>();
 
@@ -92,8 +97,8 @@ export default function Index() {
                   Fix the <em>SEO gaps</em> keeping your store out of Google
                 </h1>
                 <p className="pp-hero-sub">
-                  SEO Pilot scans your products, collections, pages and homepage for what keeps them
-                  out of Google — missing titles, weak descriptions, unlabeled images, broken links —
+                  Metaglow SEO scans your products, collections, pages and homepage for what keeps them
+                  out of Google â€” missing titles, weak descriptions, unlabeled images, broken links â€”
                   and fixes it in a click. No SEO knowledge needed.
                 </p>
                 <div className="pp-cta-row">
@@ -109,7 +114,7 @@ export default function Index() {
                 </div>
               </div>
 
-              <div className="pp-mock" aria-label="Example of the SEO Pilot dashboard">
+              <div className="pp-mock" aria-label="Example of the Metaglow SEO dashboard">
                 <div className="pp-mock-top">
                   <span className="pp-mock-title">Store SEO score</span>
                   <span className="pp-mock-tag">Example</span>
@@ -209,7 +214,7 @@ export default function Index() {
                   <div className="pp-plan-price">
                     ${p.usd.toFixed(2)} <span>/ month</span>
                   </div>
-                  <div className="pp-plan-inr">₹{p.inr} / month for shops billed in rupees</div>
+                  <div className="pp-plan-inr">â‚¹{p.inr} / month for shops billed in rupees</div>
                   <ul>
                     {p.items.map((item) => (
                       <li key={item}>
@@ -222,8 +227,8 @@ export default function Index() {
               ))}
             </div>
             <p className="pp-plans-note">
-              SEO Pilot helps you follow Google's best practices. It can't promise a ranking or a
-              traffic increase — nobody honestly can.
+              Metaglow SEO helps you follow Google's best practices. It can't promise a ranking or a
+              traffic increase â€” nobody honestly can.
             </p>
           </div>
         </section>

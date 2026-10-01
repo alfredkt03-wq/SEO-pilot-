@@ -2,6 +2,6 @@
 # app embed. Merchants turn it on in Theme Editor > App embeds — Shopify
 # doesn't allow apps to inject markup into a theme without that explicit,
 # merchant-visible opt-in.
-name = "SEO Pilot: Schema"
+name = "Metaglow SEO: Schema"
 type = "theme"
 uid = "d5a76f54-e0fd-fff8-01af-201e3b5e4bc572d111e2"

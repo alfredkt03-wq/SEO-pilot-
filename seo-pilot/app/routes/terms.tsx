@@ -12,6 +12,11 @@ import { PublicFonts, PublicShell } from "../components/public-shell";
 
 const LAST_UPDATED = "September 27, 2026";
 
+export const meta = () => [
+  { title: "Terms of Service - Metaglow SEO" },
+  { name: "description", content: "The terms for using Metaglow SEO, a Shopify app for fixing SEO problems." },
+];
+
 export default function Terms() {
   return (
     <>
@@ -22,9 +27,9 @@ export default function Terms() {
           <div className="pp-updated">Last updated: {LAST_UPDATED}</div>
 
           <section>
-            <h2>SEO Pilot Terms of Service</h2>
+            <h2>Metaglow SEO Terms of Service</h2>
             <p>
-              By installing or using SEO Pilot ("the app"), you agree to these terms. If you don't
+              By installing or using Metaglow SEO ("the app"), you agree to these terms. If you don't
               agree, don't install or use the app.
             </p>
           </section>
@@ -32,7 +37,7 @@ export default function Terms() {
           <section>
             <h2>What the app does</h2>
             <p>
-              SEO Pilot scans your Shopify store for SEO issues and offers fixes, which you review and
+              Metaglow SEO scans your Shopify store for SEO issues and offers fixes, which you review and
               apply — automatically where you choose "Fix everything," or one at a time. You are
               responsible for reviewing any fix, AI-written or template-based, before or after it's
               applied, and for how your store's content reads once changed.
@@ -42,7 +47,7 @@ export default function Terms() {
           <section>
             <h2>No guaranteed results</h2>
             <p>
-              SEO Pilot helps you follow known SEO best practices. It does <strong>not</strong>{" "}
+              Metaglow SEO helps you follow known SEO best practices. It does <strong>not</strong>{" "}
               guarantee any specific search ranking, traffic increase, sales increase, or inclusion in
               Google or any other search engine's results. Search engine rankings depend on many
               factors outside this app's or its developer's control, including changes search engines
@@ -76,7 +81,7 @@ export default function Terms() {
           <section>
             <h2>Limitation of liability</h2>
             <p>
-              To the maximum extent permitted by law, the developer of SEO Pilot will not be liable
+              To the maximum extent permitted by law, the developer of Metaglow SEO will not be liable
               for any indirect, incidental, special, consequential, or punitive damages, or any loss
               of profits, revenue, data, or business opportunity, arising from your use of or
               inability to use the app — even if advised of the possibility of such damages. Where

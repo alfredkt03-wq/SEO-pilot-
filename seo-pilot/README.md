@@ -1,4 +1,4 @@
-# SEO Pilot
+# Metaglow SEO
 
 A Shopify SEO app: scans products, pages and collections for common SEO
 problems, lets the merchant fix most of them in one click *or* write their

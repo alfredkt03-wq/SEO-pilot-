@@ -1,7 +1,7 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 client_id = "3a2817666654540b47ef99b02f438850"
-name = "SEO Pilot"
+name = "Metaglow SEO"
 handle = "seo-pilot-fixer"
 application_url = "https://seo-pilot-l7ay.onrender.com"
 embedded = true

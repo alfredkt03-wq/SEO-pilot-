@@ -24,7 +24,7 @@ export default function Auth() {
 
   return (
     <AppProvider embedded={false}>
-      <s-page heading="Log in to SEO Pilot">
+      <s-page heading="Log in to Metaglow SEO">
         <Form method="post">
           <s-section>
             <s-stack direction="block" gap="base">

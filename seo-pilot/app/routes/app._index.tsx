@@ -281,7 +281,7 @@ export default function Dashboard() {
   const scanUsagePercent = scan && scanCapacity > 0 ? Math.min(100, Math.round((scannedCount / scanCapacity) * 100)) : 0;
 
   return (
-    <s-page heading="SEO Pilot">
+    <s-page heading="Metaglow SEO">
       {hasActivePayment ? (
         <s-button slot="primary-action" onClick={runScan} {...(scanning ? { loading: true } : {})}>
           {scan ? "Re-scan store" : "Run first scan"}
@@ -315,7 +315,7 @@ export default function Dashboard() {
               <s-badge tone="success" icon="check-circle-filled">
                 {TRIAL_DAYS}-day free trial
               </s-badge>
-              <s-heading>Welcome to SEO Pilot</s-heading>
+              <s-heading>Welcome to Metaglow SEO</s-heading>
               <s-paragraph>
                 Find out what is keeping your store out of Google, and fix it in a few clicks. You
                 don't need to know anything about SEO — everything is explained in plain words.
@@ -526,7 +526,7 @@ export default function Dashboard() {
       </s-section>
 
       {hasActivePayment && (
-        <s-section heading="Do more with SEO Pilot">
+        <s-section heading="Do more with Metaglow SEO">
           <div className="sp-more">
             {MORE_TOOLS.map((t) => (
               <div className="sp-more-card" key={t.href}>
@@ -614,7 +614,7 @@ export default function Dashboard() {
           <s-stack direction="block" gap="small-300">
             <s-paragraph>
               <s-text type="strong">{impact.totalFixesApplied}</s-text> SEO issue
-              {impact.totalFixesApplied === 1 ? "" : "s"} fixed since you installed SEO Pilot
+              {impact.totalFixesApplied === 1 ? "" : "s"} fixed since you installed Metaglow SEO
             </s-paragraph>
             <s-paragraph>
               <s-text type="strong">{impact.totalRedirectsCreated}</s-text> broken link
@@ -631,7 +631,7 @@ export default function Dashboard() {
         )}
       </s-section>
 
-      <s-section slot="aside" heading="What SEO Pilot checks">
+      <s-section slot="aside" heading="What Metaglow SEO checks">
         <s-unordered-list>
           <s-list-item>SEO titles and meta descriptions on products, collections and pages</s-list-item>
           <s-list-item>Homepage title, description, main heading and social sharing image</s-list-item>

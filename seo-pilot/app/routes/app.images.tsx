@@ -99,7 +99,7 @@ export default function Images() {
       <s-section heading={`Oversized images (${oversized.length})`}>
         <s-paragraph>
           <s-text color="subdued">
-            SEO Pilot never touches your live product images. "Create compressed copy" downloads
+            Metaglow SEO never touches your live product images. "Create compressed copy" downloads
             the image, shrinks and re-compresses it, and adds the result as a new file in your
             Files library — swap it into the product yourself whenever you're ready.
           </s-text>

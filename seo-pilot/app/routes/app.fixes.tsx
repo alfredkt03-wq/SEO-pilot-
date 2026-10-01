@@ -403,7 +403,7 @@ export default function Fixes() {
       {manual.length > 0 && (
         <s-section heading={`Needs a human look (${manual.length})`}>
           <s-paragraph>
-            These need judgment or a change outside SEO Pilot — each one says what to do.
+            These need judgment or a change outside Metaglow SEO — each one says what to do.
           </s-paragraph>
           <s-table>
             <s-table-header-row>

@@ -195,7 +195,7 @@ export function PublicShell({ children, wide = false }: { children: ReactNode; w
                 <path d="M4 20V10M10 20V4M16 20v-8M22 20H2" />
               </svg>
             </span>
-            <span className="pp-logo-word">SEO Pilot</span>
+            <span className="pp-logo-word">Metaglow SEO</span>
           </a>
           <nav className="pp-nav">
             <a href="/#pricing">Pricing</a>
@@ -210,7 +210,7 @@ export function PublicShell({ children, wide = false }: { children: ReactNode; w
       <main className={wide ? "pp-main-wide" : "pp-main"}>{children}</main>
       <footer className="pp-footer">
         <div className="pp-wrap">
-          <span>© 2026 SEO Pilot</span>
+          <span>© 2026 Metaglow SEO</span>
           <span>
             <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a>
           </span>

@@ -15,10 +15,10 @@ export type Tier = "free" | "basic" | "premium" | "exclusive" | "agency";
 export type PaidTier = Exclude<Tier, "free">;
 
 export const PLANS = {
-  basic: { usd: "SEO Pilot Basic", inr: "SEO Pilot Basic India", priceUsd: 3.89, priceInr: 309 },
-  premium: { usd: "SEO Pilot Premium", inr: "SEO Pilot Premium India", priceUsd: 17.99, priceInr: 1499 },
-  exclusive: { usd: "SEO Pilot Exclusive", inr: "SEO Pilot Exclusive India", priceUsd: 29, priceInr: 2499 },
-  agency: { usd: "SEO Pilot Agency", inr: "SEO Pilot Agency India", priceUsd: 59, priceInr: 4999 },
+  basic: { usd: "Metaglow SEO Basic", inr: "Metaglow SEO Basic India", priceUsd: 3.89, priceInr: 309 },
+  premium: { usd: "Metaglow SEO Premium", inr: "Metaglow SEO Premium India", priceUsd: 17.99, priceInr: 1499 },
+  exclusive: { usd: "Metaglow SEO Exclusive", inr: "Metaglow SEO Exclusive India", priceUsd: 29, priceInr: 2499 },
+  agency: { usd: "Metaglow SEO Agency", inr: "Metaglow SEO Agency India", priceUsd: 59, priceInr: 4999 },
 } as const;
 
 export type PlanName = (typeof PLANS)[PaidTier]["usd" | "inr"];

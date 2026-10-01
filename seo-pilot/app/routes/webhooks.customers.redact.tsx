@@ -1,7 +1,7 @@
 import type { ActionFunctionArgs } from "react-router";
 import { authenticate } from "../shopify.server";
 
-// Mandatory privacy webhook. SEO Pilot never stores customer data, so there
+// Mandatory privacy webhook. Metaglow SEO never stores customer data, so there
 // is nothing to delete for an individual customer.
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { shop, topic } = await authenticate.webhook(request);

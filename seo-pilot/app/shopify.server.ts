@@ -28,7 +28,7 @@ function resolveAppUrl(): string {
   if (fromEnv) return fromEnv;
 
   throw new Error(
-    "SEO Pilot: no app URL available. In local development this is normally " +
+    "Metaglow SEO: no app URL available. In local development this is normally " +
       "supplied automatically by `npm run dev` (the Shopify CLI) — if you see " +
       "this, the CLI didn't pass it through, and setting SHOPIFY_APP_URL in a " +
       ".env file at the project root to the tunnel URL shown in the terminal " +

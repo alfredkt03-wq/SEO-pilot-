@@ -45,7 +45,7 @@ export default function Autopilot() {
       <s-link slot="breadcrumb-actions" href="/app/tools">Tools</s-link>
       <s-section heading="What this does">
         <s-paragraph>
-          Every time you add a product, SEO Pilot checks it for you. Most new products go live
+          Every time you add a product, Metaglow SEO checks it for you. Most new products go live
           with no SEO title and no meta description, so they start out weaker in Google. Autopilot
           catches that the moment the product is created.
         </s-paragraph>
