@@ -8,7 +8,7 @@ import { checkPlan } from "../lib/billing.server";
 import { buildSignedState } from "../lib/oauth-state.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { session, billing } = await authenticate.admin(request);
+  const { session, billing, redirect: adminRedirect } = await authenticate.admin(request);
 
   if (!gscConfigured()) {
     throw new Response(
@@ -23,5 +23,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   }
 
   const redirectUri = `${resolveAppUrl()}/auth/gsc/callback`;
-  return redirect(buildAuthorizeUrl(redirectUri, buildSignedState(session.shop)));
+  // Google refuses to load inside the Shopify admin iframe, so the redirect
+  // has to happen at the top level of the browser window.
+  return adminRedirect(buildAuthorizeUrl(redirectUri, buildSignedState(session.shop)), { target: "_top" });
 };

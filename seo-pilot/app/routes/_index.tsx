@@ -1,7 +1,6 @@
 import type { LoaderFunctionArgs } from "react-router";
 import { redirect, useLoaderData } from "react-router";
 
-import { SUPPORT_EMAIL } from "../lib/support";
 import { PLANS, planFeatures, TIER_LABEL, TRIAL_DAYS } from "../lib/plans";
 import { PublicFonts, PublicShell } from "../components/public-shell";
 
@@ -52,7 +51,6 @@ const FEATURES: Array<{ title: string; body: string; icon: string; tone: "green"
   { title: "Broken links & redirects", body: "Finds dead links and sends visitors to the right page, without touching your theme code.", icon: LINK, tone: "green" },
   { title: "Internal links", body: "Finds pages that mention another page without linking to it and adds the link in one click.", icon: LINK, tone: "gold" },
   { title: "Structured data", body: "Schema.org markup for products, articles and breadcrumbs, so Google can show richer results.", icon: CODE, tone: "gold" },
-  { title: "Search Console", body: "See real clicks and impressions from Google next to the issues that hold them back.", icon: CHART, tone: "green" },
 ];
 
 const PLAN_CARDS = (["basic", "premium", "exclusive", "agency"] as const).map((t) => ({
@@ -74,18 +72,8 @@ function GetApp({ appStoreUrl, onLight = false }: { appStoreUrl: string | null; 
       </a>
     );
   }
-  return (
-    <>
-      <span className={`pp-soon${onLight ? " light" : ""}`}>Coming soon to the Shopify App Store</span>
-      <a
-        className="pp-link-light"
-        style={onLight ? { color: "#167a44" } : undefined}
-        href={`mailto:${SUPPORT_EMAIL}?subject=SEO%20Pilot%20early%20access`}
-      >
-        Email us for early access
-      </a>
-    </>
-  );
+  // No listing URL yet: show nothing rather than a "coming soon" line.
+  return null;
 }
 
 export default function Index() {

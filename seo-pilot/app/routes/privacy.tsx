@@ -30,7 +30,8 @@ export default function Privacy() {
             <h2>What the app can access</h2>
             <p>
               SEO Pilot requests these Shopify Admin API scopes: <strong>write_products</strong>,{" "}
-              <strong>write_content</strong>, and <strong>write_online_store_navigation</strong>. In
+              <strong>write_content</strong>, <strong>write_online_store_navigation</strong>, and{" "}
+              <strong>write_files</strong> (for image alt text and compressed image copies). In
               plain terms, that's your products, pages, collections, blog content, images, and URL
               redirects — the parts of your store that affect search results.
             </p>
@@ -55,7 +56,7 @@ export default function Privacy() {
               <li>Your store's billing and storefront currency, to price plans correctly and localize suggestions</li>
               <li>How many AI-written suggestions you've used, to enforce plan limits</li>
               <li>
-                If you choose to connect Google Search Console (Premium/Exclusive plans only, and only
+                If you choose to connect Google Search Console (Premium, Exclusive and Agency plans only, and only
                 if you click "Connect"): a Google refresh token and your search performance stats
                 (clicks, impressions, top queries). This is entirely optional and can be disconnected
                 at any time from the Search Console page in the app.
@@ -72,9 +73,15 @@ export default function Privacy() {
             <ul>
               <li>
                 <strong>Anthropic (Claude)</strong> — when you use an AI-write feature, the relevant
-                product/page title and description are sent to Anthropic's API to generate a
+                product/page title and description — and, for image alt text and some product
+                descriptions, the product image itself — are sent to Anthropic's API to generate a
                 suggestion. Nothing is sent unless you click an AI-write button. See{" "}
                 <a href="https://www.anthropic.com/legal/privacy">Anthropic's privacy policy</a>.
+              </li>
+              <li>
+                <strong>Google (PageSpeed Insights)</strong> — when you run the mobile speed test,
+                your storefront's public web address is sent to Google's PageSpeed service. No
+                customer or order data is involved.
               </li>
               <li>
                 <strong>Google (Search Console API)</strong> — only if you connect it. Read-only

@@ -4,12 +4,11 @@ import { useFetcher, useLoaderData } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
-import { checkPlan } from "../lib/billing.server";
+import { checkPlan, requirePlan } from "../lib/billing.server";
 import { recordRedirectCreated } from "../lib/impact.server";
 import type { RedirectRow } from "../lib/types";
 
-// Redirects are free on every plan — fixing a broken link shouldn't wait on
-// a subscription (competitors include this in their free plans too).
+// Redirects are part of every paid plan (Basic and up); there is no free tier.
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, billing } = await authenticate.admin(request);
@@ -39,6 +38,11 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const formData = await request.formData();
   const intent = formData.get("intent");
 
+  // Redirect manager is a paid feature (Basic and up), like the rest of the app.
+  if (intent === "create" || intent === "bulk" || intent === "delete") {
+    await requirePlan(admin, billing, session.shop);
+  }
+
   if (intent === "create") {
     const path = String(formData.get("path") || "").trim();
     const target = String(formData.get("target") || "").trim();
@@ -56,7 +60,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       { variables: { urlRedirect: { path, target } } },
     );
     const json = await res.json();
-    const errors = json.data?.urlRedirectCreate?.userErrors ?? [];
+    if ((json as any).errors?.length || !json.data?.urlRedirectCreate) {
+      return { error: "Shopify didn't accept the redirect. Please try again in a moment." };
+    }
+    const errors = json.data.urlRedirectCreate.userErrors ?? [];
     if (errors.length > 0) {
       return { error: errors.map((e: any) => e.message).join("; ") };
     }
@@ -84,7 +91,27 @@ export const action = async ({ request }: ActionFunctionArgs) => {
         }`,
         { variables: { urlRedirect: { path: from, target: to } } },
       );
-      const errs = (await r.json()).data?.urlRedirectCreate?.userErrors ?? [];
+      const rj = await r.json();
+      if ((rj as any).errors?.length || !rj.data?.urlRedirectCreate) {
+        // Usually Shopify throttling: wait briefly and try this line once more.
+        await new Promise((ok) => setTimeout(ok, 1500));
+        const r2 = await admin.graphql(
+          `#graphql
+          mutation BulkRedirectRetry($urlRedirect: UrlRedirectInput!) {
+            urlRedirectCreate(urlRedirect: $urlRedirect) { userErrors { message } }
+          }`,
+          { variables: { urlRedirect: { path: from, target: to } } },
+        );
+        const rj2 = await r2.json();
+        if ((rj2 as any).errors?.length || !rj2.data?.urlRedirectCreate || rj2.data.urlRedirectCreate.userErrors?.length) {
+          failed.push(line);
+        } else {
+          made++;
+          await recordRedirectCreated(session.shop);
+        }
+        continue;
+      }
+      const errs = rj.data.urlRedirectCreate.userErrors ?? [];
       if (errs.length) failed.push(line); else { made++; await recordRedirectCreated(session.shop); }
     }
     return failed.length
@@ -105,7 +132,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       { variables: { id } },
     );
     const json = await res.json();
-    const errors = json.data?.urlRedirectDelete?.userErrors ?? [];
+    if ((json as any).errors?.length || !json.data?.urlRedirectDelete) {
+      return { error: "Shopify didn't delete the redirect. Please try again in a moment." };
+    }
+    const errors = json.data.urlRedirectDelete.userErrors ?? [];
     if (errors.length > 0) {
       return { error: errors.map((e: any) => e.message).join("; ") };
     }

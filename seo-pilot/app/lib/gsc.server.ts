@@ -60,6 +60,7 @@ export async function exchangeCodeForTokens(code: string, redirectUri: string): 
   const res = await fetch(OAUTH_TOKEN_URL, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    signal: AbortSignal.timeout(15000),
     body: new URLSearchParams({
       code,
       client_id: clientId,
@@ -80,6 +81,7 @@ async function refreshAccessToken(refreshToken: string): Promise<string> {
   const res = await fetch(OAUTH_TOKEN_URL, {
     method: "POST",
     headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    signal: AbortSignal.timeout(15000),
     body: new URLSearchParams({
       refresh_token: refreshToken,
       client_id: clientId,
@@ -100,6 +102,7 @@ async function refreshAccessToken(refreshToken: string): Promise<string> {
 export async function listSites(accessToken: string): Promise<string[]> {
   const res = await fetch(`${GSC_API}/sites`, {
     headers: { Authorization: `Bearer ${accessToken}` },
+    signal: AbortSignal.timeout(15000),
   });
   const json = await res.json();
   if (!res.ok) throw new Error(json.error?.message || "Couldn't list Search Console properties");
@@ -116,7 +119,10 @@ export function pickSiteForDomain(sites: string[], shopDomain: string): string |
   if (domainProp) return domainProp;
   const urlProp = sites.find((s) => s.includes(bare));
   if (urlProp) return urlProp;
-  return sites[0] ?? null;
+  // A store on its own domain won't match the *.myshopify.com name. With only
+  // one property on the account it can only be that one; with several we
+  // can't tell, so return null rather than guess and show the wrong site.
+  return sites.length === 1 ? sites[0] : null;
 }
 
 export interface GscStats {
@@ -131,26 +137,28 @@ export async function fetchSearchAnalytics(accessToken: string, siteUrl: string)
   const end = new Date();
   end.setUTCDate(end.getUTCDate() - 3);
   const start = new Date(end);
-  start.setUTCDate(start.getUTCDate() - 28);
+  start.setUTCDate(start.getUTCDate() - 27); // 28 days, both ends included
   const fmt = (d: Date) => d.toISOString().slice(0, 10);
 
-  const res = await fetch(`${GSC_API}/sites/${encodeURIComponent(siteUrl)}/searchAnalytics/query`, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      startDate: fmt(start),
-      endDate: fmt(end),
-      dimensions: ["query"],
-      rowLimit: 10,
-    }),
-  });
-  const json = await res.json();
-  if (!res.ok) throw new Error(json.error?.message || "Couldn't fetch Search Console data");
+  const query = async (extra: Record<string, unknown>) => {
+    const res = await fetch(`${GSC_API}/sites/${encodeURIComponent(siteUrl)}/searchAnalytics/query`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+      signal: AbortSignal.timeout(15000),
+      body: JSON.stringify({ startDate: fmt(start), endDate: fmt(end), ...extra }),
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.error?.message || "Couldn't fetch Search Console data");
+    return json;
+  };
 
-  const rows: Array<{ keys: string[]; clicks: number; impressions: number }> = json.rows ?? [];
+  // Two requests: real totals (no dimension), and the top queries list.
+  const [totals, byQuery] = await Promise.all([query({}), query({ dimensions: ["query"], rowLimit: 10 })]);
+
+  const rows: Array<{ keys: string[]; clicks: number; impressions: number }> = byQuery.rows ?? [];
   const topQueries = rows.map((r) => ({ query: r.keys[0], clicks: r.clicks, impressions: r.impressions }));
-  const clicks = topQueries.reduce((sum, r) => sum + r.clicks, 0);
-  const impressions = topQueries.reduce((sum, r) => sum + r.impressions, 0);
+  const clicks = Number(totals.rows?.[0]?.clicks ?? 0);
+  const impressions = Number(totals.rows?.[0]?.impressions ?? 0);
   return { clicks, impressions, topQueries };
 }
 

@@ -102,7 +102,7 @@ export default function Terms() {
               Paid plans are billed through Shopify's standard app billing, in the currency shown on
               the Plans page. Free trials, where offered, convert automatically to a paid subscription
               unless canceled before the trial ends. You can cancel or switch plans at any time from
-              Shopify admin → Settings → Apps, or from the app's Plans page.
+              Shopify admin → Settings → Apps.
             </p>
           </section>
 

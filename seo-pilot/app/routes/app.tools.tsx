@@ -19,7 +19,6 @@ const TOOLS: Array<{ title: string; body: string; href: string; min: PaidTier | 
   { title: "Internal links", body: "Finds pages that mention another page without linking to it, and adds the link in one click.", href: "/app/internal-links", min: "basic" },
   { title: "Redirects", body: "Fix broken links (404s) by sending the old address to the right page. Exclusive and Agency can import many at once.", href: "/app/redirects", min: null },
   { title: "Images", body: "Shrink oversized images so your pages load faster.", href: "/app/images", min: "basic" },
-  { title: "Search Console", body: "See real clicks and impressions from Google.", href: "/app/search-console", min: "premium" },
   { title: "SEO report", body: "Your score and open issues on one page, with a CSV download and print to PDF. Agency adds your business name.", href: "/app/report", min: "exclusive" },
 ];
 

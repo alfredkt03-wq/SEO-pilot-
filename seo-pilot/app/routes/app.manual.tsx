@@ -71,13 +71,12 @@ const PAGES: Array<{ name: string; body: string }> = [
   { name: "Fixes", body: "The full list of problems found. Tick the ones you want and apply them." },
   { name: "Editor", body: "Change any product, collection or page title and description by hand." },
   { name: "Content check", body: "Premium and above. Reads the text on your products, collections and pages and tells you where to add more words or make it clearer, worst first. You edit the text in Shopify." },
-  { name: "Tools", body: "Everything beyond the scan and fixes: Autopilot, Content check, Internal links, Redirects, Images, Search Console and the SEO report." },
+  { name: "Tools", body: "Everything beyond the scan and fixes: Autopilot, Content check, Internal links, Redirects, Images and the SEO report." },
   { name: "Autopilot", body: "Premium and above. Checks every new product the moment you add it. Exclusive and Agency can switch on automatic SEO text for new products." },
   { name: "Report", body: "Exclusive and Agency. A one-page summary of your score and open issues, with a CSV download and print-to-PDF. Agency puts your own business name on it and adds the content check." },
   { name: "Internal links", body: "Finds pages that mention another page by name without linking to it. One click adds the link, which helps Google find and rank your pages." },
   { name: "Redirects", body: "Send an old or broken web address to the right page, so visitors and Google don't hit a dead end." },
   { name: "Images", body: "Shrinks photos that are too big so your pages load faster." },
-  { name: "Search Console", body: "Optional. Connects your Google account to show real clicks and views from Google." },
   { name: "Plan", body: "Choose or change your plan. Every plan starts with a free trial." },
 ];
 

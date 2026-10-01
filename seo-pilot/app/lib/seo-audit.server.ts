@@ -439,12 +439,39 @@ async function checkSitemapReachable(shop: string): Promise<boolean> {
   }
 }
 
+// Runs a Shopify GraphQL query for the scan. Shopify throttles by query cost:
+// when it says THROTTLED we wait for the bucket to refill and retry. Any other
+// error is thrown, so a failed request can never be mistaken for "the store
+// has no pages" (which would wipe results and flag every link as broken).
+async function gqlJson(admin: any, query: string, options?: { variables?: any }): Promise<any> {
+  for (let attempt = 1; ; attempt++) {
+    const res = await admin.graphql(query, options);
+    const json: any = await res.json();
+    const throttled = json.errors?.some?.((e: any) => e?.extensions?.code === "THROTTLED");
+    if (throttled && attempt < 6) {
+      const cost = json.extensions?.cost;
+      const need = cost?.requestedQueryCost ?? 500;
+      const have = cost?.throttleStatus?.currentlyAvailable ?? 0;
+      const rate = cost?.throttleStatus?.restoreRate ?? 50;
+      await new Promise((r) => setTimeout(r, Math.min(8000, Math.max(500, ((need - have) / rate) * 1000))));
+      continue;
+    }
+    if (json.errors?.length) {
+      throw new Error(
+        "Shopify couldn't return your store data: " +
+          json.errors.map((e: any) => e?.message).filter(Boolean).join("; "),
+      );
+    }
+    return json;
+  }
+}
+
 async function fetchProducts(admin: any, maxPages: number): Promise<FetchResult> {
   const records: ResourceRecord[] = [];
   let cursor: string | null = null;
   let fullyScanned = false;
   for (let page = 0; page < maxPages; page++) {
-    const response: Response = await admin.graphql(
+    const json: any = await gqlJson(admin,
       `#graphql
       query ScanProducts($first: Int!, $after: String) {
         products(first: $first, after: $after) {
@@ -459,7 +486,7 @@ async function fetchProducts(admin: any, maxPages: number): Promise<FetchResult>
               vendor
               productType
               seo { title description }
-              media(first: 10) {
+              media(first: 5) {
                 edges {
                   node {
                     id
@@ -475,7 +502,6 @@ async function fetchProducts(admin: any, maxPages: number): Promise<FetchResult>
       }`,
       { variables: { first: PAGE_SIZE, after: cursor } },
     );
-    const json = await response.json();
     const conn = json.data?.products;
     for (const edge of conn?.edges ?? []) {
       const n = edge.node;
@@ -499,7 +525,8 @@ async function fetchProducts(admin: any, maxPages: number): Promise<FetchResult>
           })),
       });
     }
-    if (!conn?.pageInfo?.hasNextPage) {
+    if (!conn) throw new Error("Shopify returned no data for this scan. Please try again in a minute.");
+    if (!conn.pageInfo?.hasNextPage) {
       fullyScanned = true;
       break;
     }
@@ -517,7 +544,7 @@ async function fetchPages(admin: any, maxPages: number): Promise<FetchResult> {
   let cursor: string | null = null;
   let fullyScanned = false;
   for (let page = 0; page < maxPages; page++) {
-    const response: Response = await admin.graphql(
+    const json: any = await gqlJson(admin,
       `#graphql
       query ScanPages($first: Int!, $after: String) {
         pages(first: $first, after: $after) {
@@ -536,7 +563,6 @@ async function fetchPages(admin: any, maxPages: number): Promise<FetchResult> {
       }`,
       { variables: { first: PAGE_SIZE, after: cursor } },
     );
-    const json = await response.json();
     const conn = json.data?.pages;
     for (const edge of conn?.edges ?? []) {
       const n = edge.node;
@@ -551,7 +577,8 @@ async function fetchPages(admin: any, maxPages: number): Promise<FetchResult> {
         rawBodyHtml: n.body ?? "",
       });
     }
-    if (!conn?.pageInfo?.hasNextPage) {
+    if (!conn) throw new Error("Shopify returned no data for this scan. Please try again in a minute.");
+    if (!conn.pageInfo?.hasNextPage) {
       fullyScanned = true;
       break;
     }
@@ -565,7 +592,7 @@ async function fetchCollections(admin: any, maxPages: number): Promise<FetchResu
   let cursor: string | null = null;
   let fullyScanned = false;
   for (let page = 0; page < maxPages; page++) {
-    const response: Response = await admin.graphql(
+    const json: any = await gqlJson(admin,
       `#graphql
       query ScanCollections($first: Int!, $after: String) {
         collections(first: $first, after: $after) {
@@ -583,7 +610,6 @@ async function fetchCollections(admin: any, maxPages: number): Promise<FetchResu
       }`,
       { variables: { first: PAGE_SIZE, after: cursor } },
     );
-    const json = await response.json();
     const conn = json.data?.collections;
     for (const edge of conn?.edges ?? []) {
       const n = edge.node;
@@ -598,7 +624,8 @@ async function fetchCollections(admin: any, maxPages: number): Promise<FetchResu
         rawBodyHtml: n.descriptionHtml ?? "",
       });
     }
-    if (!conn?.pageInfo?.hasNextPage) {
+    if (!conn) throw new Error("Shopify returned no data for this scan. Please try again in a minute.");
+    if (!conn.pageInfo?.hasNextPage) {
       fullyScanned = true;
       break;
     }

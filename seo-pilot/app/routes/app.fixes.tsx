@@ -279,9 +279,8 @@ export default function Fixes() {
       {!hasActivePayment && (
         <s-banner heading="Start your free trial" tone="info">
           <s-paragraph>
-            Scanning and viewing issues is free to look at, but applying fixes needs an active
-            plan. Start Basic's {TRIAL_DAYS}-day free trial — {pricing.basic.priceLabel}/month after
-            — to fix these.
+            Scanning and fixing need an active plan. Start Basic's {TRIAL_DAYS}-day free trial —
+            {pricing.basic.priceLabel}/month after — to scan your store and fix what we find.
           </s-paragraph>
           <s-button slot="secondary-actions" href="/app/billing">
             See plans

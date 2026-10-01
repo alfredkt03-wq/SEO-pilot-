@@ -1,22 +1,23 @@
 # Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
 
-client_id = ""
+client_id = "3a2817666654540b47ef99b02f438850"
 name = "SEO Pilot"
 handle = "seo-pilot"
-application_url = "https://your-app-url.example.com"
+application_url = "https://seo-pilot-l7ay.onrender.com"
 embedded = true
 
 [access_scopes]
 # SEO title/description + image alt text (write_products)
 # Page & blog SEO fields (write_content)
 # Redirect manager (write_online_store_navigation)
-scopes = "write_products,write_content,write_online_store_navigation"
+# Image alt text and compressed image copies (write_files)
+scopes = "write_products,write_content,write_online_store_navigation,write_files"
 
 [auth]
 redirect_urls = [
-  "https://your-app-url.example.com/auth/callback",
-  "https://your-app-url.example.com/auth/shopify/callback",
-  "https://your-app-url.example.com/api/auth/callback"
+  "https://seo-pilot-l7ay.onrender.com/auth/callback",
+  "https://seo-pilot-l7ay.onrender.com/auth/shopify/callback",
+  "https://seo-pilot-l7ay.onrender.com/api/auth/callback"
 ]
 
 [webhooks]

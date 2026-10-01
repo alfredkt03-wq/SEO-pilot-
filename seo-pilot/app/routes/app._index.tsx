@@ -88,7 +88,10 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     const openIssues: SeoIssueRow[] = await db.seoIssue.findMany({
       where: { shop: session.shop, fixed: false },
     });
-    const fixable = openIssues.filter(isFixable);
+    // Rewriting a whole product description is never done in bulk: a thin
+    // description can still hold a size chart, video or legal text. Those fixes
+    // stay one at a time on the Fixes page, where the merchant sees the text first.
+    const fixable = openIssues.filter((i) => isFixable(i) && i.type !== "THIN_CONTENT");
     const result = await applyFixesToIssues(admin, fixable);
     if (result.fixed > 0) {
       await recordFixesApplied(session.shop, result.fixed);
@@ -275,7 +278,7 @@ export default function Dashboard() {
   const scannedCount = scan
     ? scan.productsScanned + scan.collectionsScanned + scan.pagesScanned
     : 0;
-  const scanUsagePercent = scan ? Math.min(100, Math.round((scannedCount / scanCapacity) * 100)) : 0;
+  const scanUsagePercent = scan && scanCapacity > 0 ? Math.min(100, Math.round((scannedCount / scanCapacity) * 100)) : 0;
 
   return (
     <s-page heading="SEO Pilot">
@@ -511,7 +514,11 @@ export default function Dashboard() {
               <div className="sp-tile"><b>~{impact.minutesSaved}<small> min</small></b><span>editing time saved</span></div>
             </div>
             <div className="sp-cap">
-              <span>{scannedCount} of {scanCapacity} scanned this run ({TIER_LABEL[tier]} plan limit)</span>
+              <span>
+                {scanCapacity > 0
+                  ? `${scannedCount} of ${scanCapacity} scanned this run (${TIER_LABEL[tier]} plan limit)`
+                  : `${scannedCount} scanned in your last run — start a plan to scan again`}
+              </span>
               <div className="sp-cap-track"><div style={{ width: `${scanUsagePercent}%`, background: lastScanPartial ? "#b7791f" : "#167a44" }} /></div>
             </div>
           </>
@@ -580,7 +587,7 @@ export default function Dashboard() {
           <s-stack direction="block" gap="small-300">
             <s-paragraph>
               <s-text type="strong">{ai.remaining}</s-text> of {ai.limit} AI writes left
-              {ai.period === "month" ? ` this month (${TIER_LABEL[tier]})` : " on the Free plan"}.
+              {ai.period === "month" ? ` this month (${TIER_LABEL[tier]})` : " (no active plan)"}.
             </s-paragraph>
             <s-paragraph>
               <s-text color="subdued">

@@ -19,23 +19,26 @@ function sign(value: string): string {
   return crypto.createHmac("sha256", secret()).update(value).digest("hex");
 }
 
-// state = "<shop>.<issuedAtMs>.<hmac>" — the timestamp lets an old, possibly
-// leaked link expire rather than working forever.
+// state = "<shop>|<issuedAtMs>|<hmac>" — the timestamp lets an old, possibly
+// leaked link expire rather than working forever. The separator is "|"
+// because a shop domain (foo.myshopify.com) already contains dots.
 const MAX_AGE_MS = 10 * 60 * 1000; // 10 minutes — plenty for a consent screen
+const SHOP_RE = /^[a-z0-9][a-z0-9-]*\.myshopify\.com$/;
 
 export function buildSignedState(shop: string): string {
   const issuedAt = Date.now().toString();
-  const payload = `${shop}.${issuedAt}`;
-  return `${payload}.${sign(payload)}`;
+  const payload = `${shop}|${issuedAt}`;
+  return `${payload}|${sign(payload)}`;
 }
 
 // Returns the shop domain if the signature is valid and fresh, otherwise null.
 export function verifySignedState(state: string | null): string | null {
   if (!state) return null;
-  const parts = state.split(".");
+  const parts = state.split("|");
   if (parts.length !== 3) return null;
   const [shop, issuedAt, mac] = parts;
-  const payload = `${shop}.${issuedAt}`;
+  if (!SHOP_RE.test(shop)) return null;
+  const payload = `${shop}|${issuedAt}`;
   const expected = sign(payload);
   // Constant-time compare so this can't be brute-forced via timing.
   const a = Buffer.from(mac);

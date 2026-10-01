@@ -34,7 +34,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const { session, billing } = await authenticate.admin(request);
   const { tier } = await checkPlan(billing);
   if (tier !== "premium" && tier !== "exclusive" && tier !== "agency") {
-    return { ok: false, error: "Search Console needs Premium or Exclusive." };
+    return { ok: false, error: "Search Console needs Premium or above." };
   }
   const formData = await request.formData();
   const intent = formData.get("intent");
@@ -65,9 +65,8 @@ export default function SearchConsole() {
       <s-link slot="breadcrumb-actions" href="/app/tools">Tools</s-link>
         <s-banner heading="Not set up yet" tone="info">
           <s-paragraph>
-            Google Search Console isn't configured on this app yet. This needs a Google Cloud OAuth
-            client (GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET) added to the server — a one-time setup
-            step outside the app itself.
+            Search Console is temporarily unavailable. Everything else in the app works as normal.
+            Please check back soon.
           </s-paragraph>
         </s-banner>
       </s-page>
@@ -77,10 +76,10 @@ export default function SearchConsole() {
   if (!eligible) {
     return (
       <s-page heading="Search Console">
-        <s-banner heading="Needs Premium or Exclusive" tone="info">
+        <s-banner heading="Needs Premium or above" tone="info">
           <s-paragraph>
-            See which of your pages Google has actually indexed, and what people are searching to
-            find your store — available on Premium and above.
+            See what people search to find your store, and how many clicks and impressions your
+            pages get — available on Premium and above.
           </s-paragraph>
           <s-button slot="secondary-actions" href="/app/billing">
             See plans
@@ -107,8 +106,8 @@ export default function SearchConsole() {
         <s-section heading="Connect Google Search Console">
           <s-stack direction="block" gap="base">
             <s-paragraph>
-              See real Google data for your store: what's actually indexed, what people search to
-              find you, and how many clicks and impressions your pages get. Read-only — this never
+              See real Google data for your store: what people search to find you, and how many
+              clicks and impressions your pages get. Read-only — this never
               changes anything in Search Console.
             </s-paragraph>
             <s-stack direction="inline">

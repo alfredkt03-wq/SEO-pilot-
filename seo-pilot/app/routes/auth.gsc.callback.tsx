@@ -50,6 +50,11 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       );
     }
     const siteUrl = pickSiteForDomain(sites, shop);
+    if (!siteUrl) {
+      return back(
+        "We couldn't tell which Search Console property is your store. Connect with a Google account that has only your store's property, or email support and we'll link it.",
+      );
+    }
 
     await db.shopSettings.upsert({
       where: { shop },

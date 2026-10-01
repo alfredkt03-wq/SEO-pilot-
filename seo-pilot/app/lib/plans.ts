@@ -16,9 +16,9 @@ export type PaidTier = Exclude<Tier, "free">;
 
 export const PLANS = {
   basic: { usd: "SEO Pilot Basic", inr: "SEO Pilot Basic India", priceUsd: 3.89, priceInr: 309 },
-  premium: { usd: "SEO Pilot Premium", inr: "SEO Pilot Premium India", priceUsd: 7.39, priceInr: 599 },
-  exclusive: { usd: "SEO Pilot Exclusive", inr: "SEO Pilot Exclusive India", priceUsd: 22.39, priceInr: 1799 },
-  agency: { usd: "SEO Pilot Agency", inr: "SEO Pilot Agency India", priceUsd: 59, priceInr: 4699 },
+  premium: { usd: "SEO Pilot Premium", inr: "SEO Pilot Premium India", priceUsd: 12.99, priceInr: 1099 },
+  exclusive: { usd: "SEO Pilot Exclusive", inr: "SEO Pilot Exclusive India", priceUsd: 29, priceInr: 2499 },
+  agency: { usd: "SEO Pilot Agency", inr: "SEO Pilot Agency India", priceUsd: 59, priceInr: 4999 },
 } as const;
 
 export type PlanName = (typeof PLANS)[PaidTier]["usd" | "inr"];
@@ -72,7 +72,6 @@ const FEATURES_BY_TIER: Array<{ from: PaidTier; text: string }> = [
   { from: "premium", text: "New product autopilot — every new product is checked" },
   { from: "premium", text: "Content check — finds pages that need more or clearer text" },
   { from: "premium", text: "AI descriptions for thin product and collection pages" },
-  { from: "premium", text: "Google Search Console — clicks and impressions" },
   { from: "exclusive", text: "Autopilot writes SEO text for new products (you turn it on)" },
   { from: "exclusive", text: "Bulk redirect import — up to 200 at a time" },
   { from: "exclusive", text: "SEO report with CSV download and print to PDF" },
