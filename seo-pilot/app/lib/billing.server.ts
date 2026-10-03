@@ -103,15 +103,34 @@ export async function checkPlan(billing: Billing): Promise<PlanStatus> {
 // current plan. There's no free tier: this is the only way into the app.
 // If Shopify refuses the rupee version, it falls back to the dollar plan so
 // the merchant is never stuck.
+// Development and review stores can only accept test charges. Asking them for
+// a real one fails with "The shop cannot accept the provided charge", so the
+// charge is made a test charge whenever the shop is a partner development store.
+async function isDevelopmentStore(admin: any): Promise<boolean> {
+  try {
+    const res = await admin.graphql(
+      `#graphql
+      query MetaglowShopPlan {
+        shop { plan { partnerDevelopment } }
+      }`,
+    );
+    const json = await res.json();
+    return json.data?.shop?.plan?.partnerDevelopment === true;
+  } catch {
+    return false;
+  }
+}
+
 export async function requestPlan(admin: any, billing: Billing, shop: string, tier: PaidTier = "basic") {
   const pricing = await getPricing(admin, shop);
+  const isTest = isTestPayment || (await isDevelopmentStore(admin));
   try {
-    return await billing.request({ plan: pricing[tier].plan, isTest: isTestPayment });
+    return await billing.request({ plan: pricing[tier].plan, isTest });
   } catch (err) {
     // A successful request throws a redirect Response to Shopify's approval page.
     if (err instanceof Response) throw err;
     if (pricing.currency === "INR") {
-      return billing.request({ plan: pricingForBillingCurrency("USD")[tier].plan, isTest: isTestPayment });
+      return billing.request({ plan: pricingForBillingCurrency("USD")[tier].plan, isTest });
     }
     throw err;
   }
