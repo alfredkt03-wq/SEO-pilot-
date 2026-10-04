@@ -48,7 +48,7 @@ export const TRIAL_DAYS = 5;
 // alt text or product description. No permanent free tier — "free" here
 // only means "hasn't started a trial yet" and gets nothing, so its
 // allowance is 0. Paid plans reset on the 1st of each month (UTC).
-export const AI_CREDITS: Record<Tier, number> = { free: 0, basic: 60, premium: 150, exclusive: 350, agency: 600 };
+export const AI_CREDITS: Record<Tier, number> = { free: 0, basic: 125, premium: 150, exclusive: 350, agency: 600 };
 
 // How many of each resource type (products, collections, pages)
 // one scan checks. Pages of 50. Free is 0 — a shop must start a paid plan's
