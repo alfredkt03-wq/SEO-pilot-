@@ -50,6 +50,17 @@ model SeoScan {
   previousScore   Int?
 }
 
+// One row per completed scan, so the dashboard can chart the score over time.
+model SeoScanHistory {
+  id          String   @id @default(cuid())
+  shop        String
+  score       Int
+  totalIssues Int
+  scannedAt   DateTime @default(now())
+
+  @@index([shop, scannedAt])
+}
+
 // Individual findings from the most recent scan for a shop.
 // Re-scanning replaces all rows for that shop.
 model SeoIssue {
