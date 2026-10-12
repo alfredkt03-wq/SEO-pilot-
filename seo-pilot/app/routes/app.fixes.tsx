@@ -232,6 +232,21 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 
 type Row = RedactableSeoIssueRow & { canApply: boolean; aiWritable: boolean };
 
+const FIX_CSS = `
+.fx-strip{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:18px 20px;border-radius:14px;color:#fff;
+  background:linear-gradient(120deg,#1e40af 0%,#2563eb 55%,#3b82f6 100%);box-shadow:0 8px 24px -12px rgba(30,64,175,.55)}
+.fx-mark{width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);display:grid;place-items:center;flex:none}
+.fx-text{display:flex;flex-direction:column;gap:2px;min-width:200px;flex:1}
+.fx-text b{font-size:15px;font-weight:650}
+.fx-text span{font-size:13px;opacity:.9}
+.fx-stats{display:flex;gap:10px;flex-wrap:wrap}
+.fx-stat{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.24);border-radius:10px;padding:8px 14px;text-align:center;min-width:84px}
+.fx-stat b{display:block;font-size:20px;line-height:1.1;font-variant-numeric:tabular-nums}
+.fx-stat span{font-size:11px;letter-spacing:.04em;text-transform:uppercase;opacity:.85}
+@media (prefers-reduced-motion:no-preference){.fx-strip{animation:fx-in .35s ease-out}}
+@keyframes fx-in{from{opacity:.4;transform:translateY(4px)}to{opacity:1;transform:none}}
+`;
+
 export default function Fixes() {
   const { fixable, manual, hasActivePayment, tier, pricing, ai } = useLoaderData<typeof loader>();
   const applyFetcher = useFetcher<typeof action>();
@@ -298,6 +313,21 @@ export default function Fixes() {
         </s-banner>
       )}
 
+      <style>{FIX_CSS}</style>
+      <div className="fx-strip">
+        <span className="fx-mark">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2L4 14h7l-1 8 9-12h-7z" /></svg>
+        </span>
+        <div className="fx-text">
+          <b>Fix what Google can't see</b>
+          <span>Let AI write it, or type your own text. You choose.</span>
+        </div>
+        <div className="fx-stats">
+          <div className="fx-stat"><b>{fixable.length}</b><span>One-click</span></div>
+          <div className="fx-stat"><b>{manual.length}</b><span>Needs you</span></div>
+        </div>
+      </div>
+
       <s-section heading={`One-click fixes (${fixable.length})`}>
         {fixable.length === 0 ? (
           <s-paragraph>No one-click fixes right now. Run a new scan from the dashboard.</s-paragraph>
@@ -307,7 +337,7 @@ export default function Fixes() {
             <s-stack direction="block" gap="base">
               <s-text color="subdued">
                 Suggestions marked AI were written from your own product info. Nothing is saved
-                to your store until you apply it. Use "Write with AI" on a row to rewrite one.
+                to your store until you apply it. Pick "Automatic" or "Manual text" on any row.
               </s-text>
               <s-table>
                 <s-table-header-row>
@@ -373,17 +403,17 @@ export default function Fixes() {
                         <s-stack direction="block" gap="small-300">
                           {ai.configured && issue.aiWritable && (
                             <s-button
-                              variant="tertiary"
+                              variant="secondary"
                               disabled={!aiAvailable}
                               onClick={() => writeWithAi([issue.id])}
                               {...(aiPendingIds.has(issue.id) ? { loading: true } : {})}
                             >
-                              {issue.aiGenerated ? "Rewrite with AI" : "Write with AI"}
+                              Automatic
                             </s-button>
                           )}
-                          {EDITABLE_IN_EDITOR.has(issue.type) && hasActivePayment && (
-                            <s-button variant="tertiary" href={editorHref(issue)}>
-                              Write my own
+                          {EDITABLE_IN_EDITOR.has(issue.type) && (
+                            <s-button variant="secondary" href={editorHref(issue)}>
+                              Manual text
                             </s-button>
                           )}
                         </s-stack>
@@ -460,12 +490,12 @@ export default function Fixes() {
                           onClick={() => writeWithAi([issue.id])}
                           {...(aiPendingIds.has(issue.id) ? { loading: true } : {})}
                         >
-                          Write a unique one with AI
+                          Automatic
                         </s-button>
                       )}
-                      {DUPLICATE_TYPES.has(issue.type) && hasActivePayment && (
-                        <s-button variant="tertiary" href={editorHref(issue)}>
-                          Edit in Editor
+                      {DUPLICATE_TYPES.has(issue.type) && (
+                        <s-button variant="secondary" href={editorHref(issue)}>
+                          Manual text
                         </s-button>
                       )}
                     </s-stack>

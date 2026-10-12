@@ -7,6 +7,7 @@ import { authenticate } from "../shopify.server";
 import db from "../db.server";
 import { checkPlan } from "../lib/billing.server";
 import { canAutoWrite, canWatch } from "../lib/autopilot.server";
+import { PageStrip } from "../components/PageStrip";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { billing, session } = await authenticate.admin(request);
@@ -42,6 +43,7 @@ export default function Autopilot() {
 
   return (
     <s-page heading="New product autopilot">
+      <PageStrip icon="bolt" title="Every new product, checked for you" text="Metaglow looks at each new product the moment you add it." />
       <s-link slot="breadcrumb-actions" href="/app/tools">Tools</s-link>
       <s-section heading="What this does">
         <s-paragraph>

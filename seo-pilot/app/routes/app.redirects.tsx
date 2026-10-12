@@ -7,6 +7,7 @@ import { authenticate } from "../shopify.server";
 import { checkPlan, requirePlan } from "../lib/billing.server";
 import { recordRedirectCreated } from "../lib/impact.server";
 import type { RedirectRow } from "../lib/types";
+import { PageStrip } from "../components/PageStrip";
 
 // Redirects are part of every paid plan (Basic and up); there is no free tier.
 
@@ -160,6 +161,7 @@ export default function Redirects() {
 
   return (
     <s-page heading="Redirects">
+      <PageStrip icon="redirect" title="Send broken links somewhere useful" text="Create redirects so visitors and Google never hit a dead end." />
       <s-link slot="breadcrumb-actions" href="/app/tools">Tools</s-link>
       <s-section heading="Fix a broken link (404)">
         <s-paragraph>

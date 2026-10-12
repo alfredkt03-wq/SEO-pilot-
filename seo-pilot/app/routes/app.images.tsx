@@ -9,6 +9,7 @@ import { fetchAndCompressImage, uploadCompressedImage } from "../lib/image-optim
 import { TRIAL_DAYS } from "../lib/plans";
 import { checkPlan, requirePlan } from "../lib/billing.server";
 import type { SeoIssueRow } from "../lib/types";
+import { PageStrip } from "../components/PageStrip";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session, billing } = await authenticate.admin(request);
@@ -84,6 +85,7 @@ export default function Images() {
 
   return (
     <s-page heading="Image optimization">
+      <PageStrip icon="image" title="Add missing image descriptions" text="Alt text helps Google and screen readers understand your pictures." />
       <s-link slot="breadcrumb-actions" href="/app/tools">Tools</s-link>
       {!hasActivePayment && (
         <s-banner heading="Subscription required" tone="warning">

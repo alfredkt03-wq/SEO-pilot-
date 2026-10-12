@@ -33,6 +33,22 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     getShopMarket(admin, shop),
   ]);
   const { hasActivePayment, tier } = planStatus;
+
+  let history: { score: number; scannedAt: string }[] = [];
+  try {
+    const rows = await db.seoScanHistory.findMany({
+      where: { shop },
+      orderBy: { scannedAt: "desc" },
+      take: 12,
+      select: { score: true, scannedAt: true },
+    });
+    history = rows.reverse().map((r: { score: number; scannedAt: Date }) => ({
+      score: r.score,
+      scannedAt: r.scannedAt.toISOString(),
+    }));
+  } catch {
+    history = [];
+  }
   // Read after getShopMarket, which may have just created this row
   const [shopSettings, aiAllowance] = await Promise.all([
     db.shopSettings.findUnique({ where: { shop } }),
@@ -50,6 +66,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   return {
     scan,
+    history,
     daysSinceScan,
     severityCounts,
     fixableCount,
@@ -135,11 +152,11 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 const RING_C = 2 * Math.PI * 62;
 const TIER_RANK: Record<string, number> = { free: 0, basic: 1, premium: 2, exclusive: 3, agency: 4 };
 
-const MORE_TOOLS: Array<{ title: string; body: string; href: string; cta: string; min: "basic" | "premium" | "exclusive" }> = [
-  { title: "Internal links", body: "Add missing links between your own pages in one click.", href: "/app/internal-links", cta: "Find links", min: "basic" },
-  { title: "Content check", body: "See which pages need more or clearer text.", href: "/app/content", cta: "Check content", min: "premium" },
-  { title: "Autopilot", body: "Every new product checked the moment you add it.", href: "/app/autopilot", cta: "Open autopilot", min: "premium" },
-  { title: "SEO report", body: "Score and open issues on one page, with CSV download.", href: "/app/report", cta: "Open report", min: "exclusive" },
+const MORE_TOOLS: Array<{ title: string; body: string; href: string; cta: string; min: "basic" | "premium" | "exclusive"; icon: string }> = [
+  { title: "Internal links", body: "Add missing links between your own pages in one click.", href: "/app/internal-links", cta: "Find links", min: "basic", icon: "M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" },
+  { title: "Content check", body: "See which pages need more or clearer text.", href: "/app/content", cta: "Check content", min: "premium", icon: "M6 3h9l4 4v14H6V3zM14 3v5h5M9 13h7M9 17h7" },
+  { title: "Autopilot", body: "Every new product checked the moment you add it.", href: "/app/autopilot", cta: "Open autopilot", min: "premium", icon: "M13 2L4 14h7l-1 8 9-12h-7l1-8z" },
+  { title: "SEO report", body: "Score and open issues on one page, with CSV download.", href: "/app/report", cta: "Open report", min: "exclusive", icon: "M5 20V10M12 20V4M19 20v-7" },
 ];
 
 const DASH_CSS = `
@@ -173,12 +190,37 @@ const DASH_CSS = `
 .sp-more-plan{font-size:11px;font-weight:650;color:#c4570a;background:#fff3e6;border-radius:999px;padding:2px 8px}
 .sp-more-card p{margin:0;font-size:13px;line-height:1.5;color:#5f6f63;flex:1}
 @media (max-width:900px){.sp-tiles,.sp-more{grid-template-columns:repeat(2,1fr)}}
+.sp-trend{margin:14px 0 4px;padding:14px 16px;border-radius:14px;background:#f7faff;border:1px solid #cfe0fb}
+.sp-trend-head{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:6px;font-size:13px}
+.sp-trend-head span{color:#5b6b85}
 @media (max-width:520px){.sp-hero{gap:20px}.sp-tiles,.sp-more{grid-template-columns:1fr}}
+
+.sp-hero{padding:18px 22px;border-radius:14px;background:linear-gradient(135deg,#f3f8ff 0%,#e6efff 55%,#eaf5ff 100%);border:1px solid #cfe0fb;box-shadow:0 6px 24px rgba(37,99,235,.08)}
+.sp-ring svg circle:first-of-type{stroke:#d5e3fb}
+.sp-ring-center b,.sp-grade-label,.sp-tile b,.sp-more-title,.sp-empty h3{color:#0b1b3a}
+.sp-ring-center span,.sp-meta,.sp-tile span,.sp-tile b small,.sp-cap,.sp-more-card p,.sp-empty p{color:#52627f}
+.sp-grade{border-radius:10px;box-shadow:0 4px 12px rgba(11,27,58,.18)}
+.sp-tile{background:linear-gradient(180deg,#ffffff,#f1f6ff);border:1px solid #d3e2fb;border-radius:12px;box-shadow:0 1px 2px rgba(15,40,100,.05);transition:transform .15s ease,box-shadow .15s ease}
+.sp-tile:hover,.sp-more-card:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(37,99,235,.14)}
+.sp-cap-track{background:#d5e3fb}
+.sp-empty{border:1px dashed #a9c4f5;background:linear-gradient(135deg,#f3f8ff,#e6f0ff)}
+.sp-empty-icon{background:linear-gradient(135deg,#3b82f6,#1d4ed8);box-shadow:0 0 0 8px rgba(59,130,246,.15),0 8px 24px rgba(37,99,235,.35)}
+.sp-more-card{border:1px solid #d3e2fb;border-radius:12px;background:linear-gradient(180deg,#ffffff,#f6f9ff);transition:transform .15s ease,box-shadow .15s ease}
+.sp-more-plan{color:#1d4ed8;background:#e5eeff}
+.sp-banner{display:flex;align-items:center;gap:14px;padding:16px 20px;margin-bottom:12px;border-radius:14px;color:#fff;background:linear-gradient(120deg,#1d4ed8 0%,#2f6ddc 55%,#3b82f6 100%);box-shadow:0 10px 28px rgba(29,78,216,.28)}
+.sp-banner-mark{width:46px;height:46px;border-radius:12px;flex:none;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3)}
+.sp-banner-text{display:flex;flex-direction:column;gap:2px;min-width:0}
+.sp-banner-text b{font-size:16px;font-weight:650;letter-spacing:-.01em}
+.sp-banner-text span{font-size:13px;line-height:1.45;color:#dbe8ff}
+.sp-more-head{display:flex;align-items:center;gap:10px;width:100%}
+.sp-more-icon{width:34px;height:34px;border-radius:9px;flex:none;display:flex;align-items:center;justify-content:center;color:#fff;background:linear-gradient(135deg,#3b82f6,#1d4ed8);box-shadow:0 4px 12px rgba(37,99,235,.3)}
+@media (prefers-reduced-motion:reduce){.sp-tile,.sp-more-card{transition:none}.sp-tile:hover,.sp-more-card:hover{transform:none}}
 `;
 
 export default function Dashboard() {
   const {
     scan,
+    history,
     daysSinceScan,
     severityCounts,
     fixableCount,
@@ -411,6 +453,15 @@ export default function Dashboard() {
       )}
 
       <style>{DASH_CSS}</style>
+      <div className="sp-banner">
+        <span className="sp-banner-mark" aria-hidden="true">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="7" /><path d="M21 21l-4.35-4.35" /><path d="M8 11l2 2 4-4" /></svg>
+        </span>
+        <div className="sp-banner-text">
+          <b>Your store's SEO, in plain words</b>
+          <span>Scan, review what Google can't see, then fix it automatically or write the text yourself.</span>
+        </div>
+      </div>
       <s-section heading="Store SEO score">
         {!scan ? (
           <div className="sp-empty">
@@ -505,6 +556,37 @@ export default function Dashboard() {
           </s-banner>
         )}
 
+        {scan && history.length >= 2 && (
+          <div className="sp-trend">
+            <div className="sp-trend-head">
+              <b>Score over time</b>
+              <span>
+                {history[0].score} → {history[history.length - 1].score} over {history.length} scans
+              </span>
+            </div>
+            {(() => {
+              const W = 560;
+              const H = 80;
+              const pad = 8;
+              const pts = history.map((h, i) => {
+                const x = pad + (i * (W - pad * 2)) / (history.length - 1);
+                const y = H - pad - (h.score / 100) * (H - pad * 2);
+                return [x, y] as const;
+              });
+              const line = pts.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
+              const area = `${pad},${H - pad} ${line} ${W - pad},${H - pad}`;
+              const last = pts[pts.length - 1];
+              return (
+                <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label="SEO score over your last scans">
+                  <polygon points={area} fill="#2563eb" fillOpacity="0.12" />
+                  <polyline points={line} fill="none" stroke="#2563eb" strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
+                  <circle cx={last[0]} cy={last[1]} r="4.5" fill="#1d4ed8" />
+                </svg>
+              );
+            })()}
+          </div>
+        )}
+
         {scan && (
           <>
             <div className="sp-tiles">
@@ -530,9 +612,14 @@ export default function Dashboard() {
           <div className="sp-more">
             {MORE_TOOLS.map((t) => (
               <div className="sp-more-card" key={t.href}>
-                <div className="sp-more-top">
-                  <span className="sp-more-title">{t.title}</span>
-                  {TIER_RANK[tier] < TIER_RANK[t.min] && <span className="sp-more-plan">{TIER_LABEL[t.min]}</span>}
+                <div className="sp-more-head">
+                  <span className="sp-more-icon" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d={t.icon} /></svg>
+                  </span>
+                  <div className="sp-more-top">
+                    <span className="sp-more-title">{t.title}</span>
+                    {TIER_RANK[tier] < TIER_RANK[t.min] && <span className="sp-more-plan">{TIER_LABEL[t.min]}</span>}
+                  </div>
                 </div>
                 <p>{t.body}</p>
                 <s-button variant="secondary" href={t.href}>{TIER_RANK[tier] < TIER_RANK[t.min] ? "See plans" : t.cta}</s-button>

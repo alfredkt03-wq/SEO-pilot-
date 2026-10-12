@@ -5,6 +5,7 @@ import { authenticate } from "../shopify.server";
 import { checkPlan, getPricing, requestPlan } from "../lib/billing.server";
 import { planFeatures, TIER_LABEL, TRIAL_DAYS, type PaidTier, type Tier } from "../lib/plans";
 import { SUPPORT_EMAIL } from "../lib/support";
+import { PageStrip } from "../components/PageStrip";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, billing, session } = await authenticate.admin(request);
@@ -52,6 +53,7 @@ export default function Billing() {
 
   return (
     <s-page heading="Plans">
+      <PageStrip icon="card" title="Pick the plan that fits your store" text="Every plan starts with a 5-day free trial. Change or cancel any time." />
       {tier !== "free" ? (
         <s-banner heading={`You're on ${TIER_LABEL[tier]}`} tone="success">
           <s-paragraph>

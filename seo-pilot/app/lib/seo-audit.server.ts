@@ -262,6 +262,13 @@ export async function runSeoAudit(admin: any, shop: string, options: AuditOption
     create: { shop, ...dbFields },
   });
 
+  // History is a nice-to-have: never let it break a scan.
+  try {
+    await db.seoScanHistory.create({ data: { shop, score, totalIssues: issues.length } });
+  } catch (err) {
+    console.error("Could not record scan history", err);
+  }
+
   return {
     ...dbFields,
     // True only when this run actually reached the end of that resource

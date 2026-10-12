@@ -1,5 +1,6 @@
 import { SUPPORT_EMAIL } from "../lib/support";
 import { TRIAL_DAYS } from "../lib/plans";
+import { PageStrip } from "../components/PageStrip";
 
 // Plain-language guide for merchants who have never heard of SEO. Static
 // content only — no data loading — so it works before a plan is started.
@@ -83,6 +84,7 @@ const PAGES: Array<{ name: string; body: string }> = [
 export default function Manual() {
   return (
     <s-page heading="How to use Metaglow SEO">
+      <PageStrip icon="book" title="New here? Start with these steps" text="A short guide to scanning, fixing and writing your own text." />
       <s-section heading="First, what is SEO?">
         <s-paragraph>
           SEO means making your shop easy for Google to understand, so more people find you when they

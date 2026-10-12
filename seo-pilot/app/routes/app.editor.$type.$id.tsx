@@ -117,13 +117,11 @@ export const action = async ({ request, params }: ActionFunctionArgs) => {
   const type = params.type;
   const gid = toGid(type, params.id);
 
-  // Saving a manual edit, and AI writing from the editor, need the paid plan
-  // (Free plan AI writes are used from the Fixes page).
-  await requirePlan(admin, billing, session.shop);
-
+  // Writing text by hand is free on every plan. AI writing needs a paid plan.
   const formData = await request.formData();
 
   if (formData.get("intent") === "ai") {
+    await requirePlan(admin, billing, session.shop);
     if (!aiConfigured()) return { mode: "ai" as const, ok: false as const, error: "AI writing isn't set up yet." };
     const { tier } = await checkPlan(billing);
     const allowance = await getAiAllowance(session.shop, tier);
@@ -236,10 +234,10 @@ export default function EditorDetail() {
       </s-button>
 
       {!hasActivePayment && (
-        <s-banner heading="Subscription required to save changes" tone="warning">
+        <s-banner heading="Writing by hand is free" tone="info">
           <s-paragraph>
-            You can preview changes for free. Saving needs Basic ({pricing.basic.priceLabel}/month
-            after a {TRIAL_DAYS}-day free trial).
+            Type your own title and description and save them on any plan. AI writing needs Basic
+            ({pricing.basic.priceLabel}/month after a {TRIAL_DAYS}-day free trial).
           </s-paragraph>
           <s-button slot="secondary-actions" href="/app/billing">
             View plan
@@ -306,7 +304,6 @@ export default function EditorDetail() {
             <s-button
               variant="primary"
               onClick={handleSave}
-              disabled={!hasActivePayment}
               {...(saving ? { loading: true } : {})}
             >
               Save

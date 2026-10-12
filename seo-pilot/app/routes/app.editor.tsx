@@ -3,7 +3,9 @@ import { Form, Link, useLoaderData } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { isEditorType, searchEditorResources, type EditorResourceType } from "../lib/editor";
-import { SEO_TITLE_MAX, META_DESC_MAX } from "../lib/suggestions";
+import { SEO_TITLE_MAX, META_DESC_MAX, itemSeoScore } from "../lib/suggestions";
+import { PageStrip } from "../components/PageStrip";
+import { ScoreChip } from "../components/ScoreChip";
 
 const TYPES: { value: EditorResourceType; label: string; plural: string }[] = [
   { value: "product", label: "Product", plural: "Products" },
@@ -30,6 +32,7 @@ export default function Editor() {
 
   return (
     <s-page heading="Editor">
+      <PageStrip icon="pen" title="Write your own SEO text" text="Search any product, collection or page and edit its title and description." />
       <s-section>
         <s-stack direction="block" gap="base">
           <s-stack direction="inline" gap="base" alignItems="center">
@@ -85,7 +88,15 @@ export default function Editor() {
                     item.seoDescription.trim().length > 0 && item.seoDescription.length <= META_DESC_MAX;
                   return (
                     <s-table-row key={item.id}>
-                      <s-table-cell>{item.title}</s-table-cell>
+                      <s-table-cell>
+                        <s-stack direction="block" gap="small-300">
+                          <s-text type="strong">{item.title}</s-text>
+                          {(() => {
+                            const r = itemSeoScore(item.seoTitle, item.seoDescription);
+                            return <ScoreChip score={r.score} tone={r.tone} />;
+                          })()}
+                        </s-stack>
+                      </s-table-cell>
                       <s-table-cell>
                         {item.seoTitle.trim() ? (
                           item.seoTitle
@@ -134,6 +145,9 @@ export default function Editor() {
         <s-paragraph>
           Search any product, collection or page and hand-edit its SEO title and meta description,
           with a live preview of how it looks in Google search results.
+        </s-paragraph>
+        <s-paragraph>
+          Editing many at once? Use the <s-link href="/app/bulk">Bulk editor</s-link>.
         </s-paragraph>
         <s-paragraph>
           Prefer automatic suggestions? Head to{" "}

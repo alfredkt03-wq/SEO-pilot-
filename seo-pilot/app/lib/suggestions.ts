@@ -26,6 +26,20 @@ export function fieldStatus(len: number, min: number, max: number): FieldStatus 
   return { label: "good length", tone: "success" };
 }
 
+// A simple 0-100 score for one item's SEO title + meta description, shown next
+// to each product/collection/page. Half the points come from each field:
+// full marks in the recommended length range, half marks when it exists but is
+// too short or too long, none when empty.
+export function itemSeoScore(seoTitle: string, seoDescription: string): { score: number; tone: "success" | "warning" | "critical" } {
+  const part = (text: string, min: number, max: number) => {
+    const len = text.trim().length;
+    if (len === 0) return 0;
+    return len >= min && len <= max ? 50 : 25;
+  };
+  const score = part(seoTitle, SEO_TITLE_MIN, SEO_TITLE_MAX) + part(seoDescription, META_DESC_MIN, META_DESC_MAX);
+  return { score, tone: score >= 80 ? "success" : score >= 50 ? "warning" : "critical" };
+}
+
 // Where the wording is aimed. "india" is used for stores that sell in INR:
 // Indian shoppers very commonly search "<product> online in India" / "buy
 // <product> online", the same pattern Amazon.in and Flipkart put in their

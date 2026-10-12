@@ -14,6 +14,7 @@ import {
   type LinkNode,
   type LinkSuggestion,
 } from "../lib/internal-links.server";
+import { PageStrip } from "../components/PageStrip";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, billing } = await authenticate.admin(request);
@@ -99,6 +100,7 @@ export default function InternalLinks() {
 
   return (
     <s-page heading="Internal links">
+      <PageStrip icon="link" title="Link your own pages together" text="Add missing links between pages so Google can find more of your store." />
       <s-link slot="breadcrumb-actions" href="/app/tools">Tools</s-link>
       <s-section heading="What this does">
         <s-paragraph>

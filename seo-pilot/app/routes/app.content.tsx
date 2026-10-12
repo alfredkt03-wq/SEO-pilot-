@@ -5,6 +5,7 @@ import { authenticate } from "../shopify.server";
 import { checkPlan } from "../lib/billing.server";
 import { analyzeAll, type ContentReport } from "../lib/content-analysis.server";
 import { loadNodes } from "../lib/internal-links.server";
+import { PageStrip } from "../components/PageStrip";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, billing } = await authenticate.admin(request);
@@ -31,6 +32,7 @@ export default function Content() {
 
   return (
     <s-page heading="Content check">
+      <PageStrip icon="doc" title="Find pages with too little text" text="Google ranks thin pages lower. See which ones need more words." />
       <s-link slot="breadcrumb-actions" href="/app/tools">Tools</s-link>
       <s-section heading="What this does">
         <s-paragraph>
