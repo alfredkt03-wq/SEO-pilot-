@@ -106,6 +106,10 @@ export function suggestSeoTitle(
     const distinct = `${clean}${suffix}`;
     return distinct.length <= SEO_TITLE_MAX ? distinct : clean;
   }
+  if (!productType) {
+    const short = `${clean} | Shop Online`;
+    return short.length <= SEO_TITLE_MAX ? short : clean;
+  }
   // Too short — pad with category context so it reads naturally and hits a
   // healthier length for search snippets.
   if (productType) {
@@ -141,6 +145,15 @@ export function suggestMetaDescription(
     sentence += ` ${base}`;
   } else {
     sentence += india ? " See price, details and availability." : " See full details, pricing and availability.";
+  }
+  // Too-short descriptions keep getting re-flagged, so pad with neutral,
+  // non-promissory sentences until the snippet reaches the healthy minimum.
+  const fillers = india
+    ? [" See price, details and availability.", " Browse the full range online."]
+    : [" See full details, pricing and availability.", " Browse the full range in our store."];
+  for (const filler of fillers) {
+    if (sentence.length >= META_DESC_MIN) break;
+    if (!sentence.includes(filler.trim())) sentence += filler;
   }
   return truncateAtWord(sentence, META_DESC_MAX);
 }
