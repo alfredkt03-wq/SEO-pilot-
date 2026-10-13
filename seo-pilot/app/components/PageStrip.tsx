@@ -1,4 +1,4 @@
-// Blue header strip shown at the top of every app page. Plain HTML + CSS,
+// Quiet neutral header strip shown at the top of every app page. Plain HTML + CSS,
 // so it looks the same everywhere and never depends on Polaris internals.
 const ICONS: Record<string, string> = {
   bolt: "M13 2L4 14h7l-1 8 9-12h-7z",
@@ -13,12 +13,11 @@ const ICONS: Record<string, string> = {
 };
 
 const CSS = `
-.ps-strip{display:flex;align-items:center;gap:14px;padding:16px 18px;margin-bottom:12px;border-radius:14px;color:#fff;
-  background:linear-gradient(120deg,#1e40af 0%,#2563eb 55%,#3b82f6 100%);box-shadow:0 8px 24px -14px rgba(30,64,175,.55)}
-.ps-mark{width:42px;height:42px;border-radius:12px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);display:grid;place-items:center;flex:none}
+.ps-strip{display:flex;align-items:center;gap:14px;padding:14px 16px;margin-bottom:12px;border-radius:8px;color:#202223;background:#f6f6f7;border:1px solid #e1e3e5}
+.ps-mark{width:34px;height:34px;border-radius:8px;background:#e8f3ef;border:1px solid #c6e0d6;color:#0f6b57;display:grid;place-items:center;flex:none}
 .ps-text{display:flex;flex-direction:column;gap:2px;min-width:0}
-.ps-text b{font-size:15px;font-weight:650}
-.ps-text span{font-size:13px;opacity:.92;line-height:1.35}
+.ps-text b{font-size:15px;font-weight:600;color:#202223}
+.ps-text span{font-size:13px;color:#616a75;line-height:1.4}
 `;
 
 export function PageStrip({ icon, title, text }: { icon: keyof typeof ICONS; title: string; text: string }) {
@@ -27,7 +26,7 @@ export function PageStrip({ icon, title, text }: { icon: keyof typeof ICONS; tit
       <style>{CSS}</style>
       <div className="ps-strip">
         <span className="ps-mark">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d={ICONS[icon]} />
           </svg>
         </span>
