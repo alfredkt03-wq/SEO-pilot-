@@ -100,7 +100,11 @@ export function suggestSeoTitle(
   }
 
   if (clean.length >= SEO_TITLE_MIN) {
-    return clean;
+    // Shopify treats an SEO title identical to the product title as unset, so
+    // always add a short descriptive suffix to make it a real, distinct title.
+    const suffix = productType ? ` | ${productType}` : " | Shop Online";
+    const distinct = `${clean}${suffix}`;
+    return distinct.length <= SEO_TITLE_MAX ? distinct : clean;
   }
   // Too short — pad with category context so it reads naturally and hits a
   // healthier length for search snippets.
