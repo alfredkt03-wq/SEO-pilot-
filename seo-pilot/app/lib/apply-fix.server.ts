@@ -21,6 +21,25 @@ async function graphqlWithRetry(admin: any, query: string, options?: any, attemp
   return json;
 }
 
+// productUpdate/collectionUpdate replace the whole `seo` object, so writing only
+// the title silently clears the description (and the other way round). Read
+// the current values first and send both.
+async function mergeSeo(admin: any, kind: "product" | "collection", id: string, patch: Record<string, string>) {
+  const json = await graphqlWithRetry(
+    admin,
+    `#graphql
+    query SeoPilotCurrentSeo($id: ID!) {
+      ${kind}(id: $id) { seo { title description } }
+    }`,
+    { variables: { id } },
+  );
+  const cur = json?.data?.[kind]?.seo ?? {};
+  const merged: Record<string, string> = {};
+  if (cur.title) merged.title = cur.title;
+  if (cur.description) merged.description = cur.description;
+  return { ...merged, ...patch };
+}
+
 // Duplicate-title/description issues have no template suggestion (there's
 // no safe way to make two titles unique mechanically), so they only become
 // fixable once the AI writer has produced a unique replacement.
@@ -123,7 +142,7 @@ export async function applyFix(
           userErrors { field message }
         }
       }`,
-      { variables: { product: { id: issue.resourceId, seo: seoInput } } },
+      { variables: { product: { id: issue.resourceId, seo: await mergeSeo(admin, "product", issue.resourceId, seoInput) } } },
     );
     return toResult(json, "productUpdate");
   }
@@ -138,7 +157,7 @@ export async function applyFix(
           userErrors { field message }
         }
       }`,
-      { variables: { input: { id: issue.resourceId, seo: seoInput } } },
+      { variables: { input: { id: issue.resourceId, seo: await mergeSeo(admin, "collection", issue.resourceId, seoInput) } } },
     );
     return toResult(json, "collectionUpdate");
   }
@@ -210,7 +229,7 @@ export async function setResourceSeo(
           userErrors { field message }
         }
       }`,
-      { variables: { product: { id: resourceId, seo } } },
+      { variables: { product: { id: resourceId, seo: await mergeSeo(admin, "product", resourceId, seo) } } },
     );
     return toResult(json, "productUpdate");
   }
@@ -228,7 +247,7 @@ export async function setResourceSeo(
           userErrors { field message }
         }
       }`,
-      { variables: { input: { id: resourceId, seo } } },
+      { variables: { input: { id: resourceId, seo: await mergeSeo(admin, "collection", resourceId, seo) } } },
     );
     return toResult(json, "collectionUpdate");
   }
