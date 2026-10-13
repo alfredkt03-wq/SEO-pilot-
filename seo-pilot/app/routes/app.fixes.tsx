@@ -233,16 +233,15 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 type Row = RedactableSeoIssueRow & { canApply: boolean; aiWritable: boolean };
 
 const FIX_CSS = `
-.fx-strip{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:18px 20px;border-radius:14px;color:#fff;
-  background:linear-gradient(120deg,#1e40af 0%,#2563eb 55%,#3b82f6 100%);box-shadow:0 8px 24px -12px rgba(30,64,175,.55)}
-.fx-mark{width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.28);display:grid;place-items:center;flex:none}
+.fx-strip{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:16px 18px;border-radius:8px;color:#202223;background:#f6f6f7;border:1px solid #e1e3e5}
+.fx-mark{width:36px;height:36px;border-radius:8px;background:#e8f3ef;border:1px solid #c6e0d6;color:#0f6b57;display:grid;place-items:center;flex:none}
 .fx-text{display:flex;flex-direction:column;gap:2px;min-width:200px;flex:1}
-.fx-text b{font-size:15px;font-weight:650}
-.fx-text span{font-size:13px;opacity:.9}
+.fx-text b{font-size:15px;font-weight:600}
+.fx-text span{font-size:13px;color:#616a75}
 .fx-stats{display:flex;gap:10px;flex-wrap:wrap}
-.fx-stat{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.24);border-radius:10px;padding:8px 14px;text-align:center;min-width:84px}
+.fx-stat{background:#fff;border:1px solid #e1e3e5;border-radius:8px;padding:8px 14px;text-align:center;min-width:84px}
 .fx-stat b{display:block;font-size:20px;line-height:1.1;font-variant-numeric:tabular-nums}
-.fx-stat span{font-size:11px;letter-spacing:.04em;text-transform:uppercase;opacity:.85}
+.fx-stat span{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#616a75}
 @media (prefers-reduced-motion:no-preference){.fx-strip{animation:fx-in .35s ease-out}}
 @keyframes fx-in{from{opacity:.4;transform:translateY(4px)}to{opacity:1;transform:none}}
 `;
