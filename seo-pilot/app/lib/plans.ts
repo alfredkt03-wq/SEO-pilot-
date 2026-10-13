@@ -18,7 +18,7 @@ export const PLANS = {
   basic: { usd: "Metaglow SEO Basic", inr: "Metaglow SEO Basic India", priceUsd: 3.89, priceInr: 309 },
   premium: { usd: "Metaglow SEO Premium", inr: "Metaglow SEO Premium India", priceUsd: 11.39, priceInr: 979 },
   exclusive: { usd: "Metaglow SEO Exclusive", inr: "Metaglow SEO Exclusive India", priceUsd: 29, priceInr: 2499 },
-  agency: { usd: "Metaglow SEO Agency", inr: "Metaglow SEO Agency India", priceUsd: 49.99, priceInr: 4199 },
+  agency: { usd: "Metaglow SEO Agency", inr: "Metaglow SEO Agency India", priceUsd: 47.39, priceInr: 3999 },
 } as const;
 
 export type PlanName = (typeof PLANS)[PaidTier]["usd" | "inr"];
