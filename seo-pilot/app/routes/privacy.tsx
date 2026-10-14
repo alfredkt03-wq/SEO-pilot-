@@ -6,7 +6,7 @@
 import { SUPPORT_EMAIL } from "../lib/support";
 import { PublicFonts, PublicShell } from "../components/public-shell";
 
-const LAST_UPDATED = "September 27, 2026";
+const LAST_UPDATED = "October 14, 2026";
 
 export const meta = () => [
   { title: "Privacy Policy - Metaglow SEO" },
@@ -66,10 +66,18 @@ export default function Privacy() {
                 (clicks, impressions, top queries). This is entirely optional and can be disconnected
                 at any time from the Search Console page in the app.
               </li>
+              <li>
+                If you use review requests (Premium, Exclusive and Agency plans): the email addresses
+                and optional first names you type in, the rating and comment a customer submits, when
+                each email was sent and opened, and the reply email and public review link you set. The
+                app does not read your customers from Shopify; it only holds what you enter.
+              </li>
             </ul>
             <p style={{ marginTop: 12 }}>
-              None of this is customer personal data. It's store-configuration and SEO-performance
-              data only.
+              Apart from the review-request details above, none of this is customer personal data.
+              It's store-configuration and SEO-performance data. You are responsible for only asking
+              people you have served, and every review-request email carries an unsubscribe link.
+              Anyone who unsubscribes is kept on a suppression list so they are not emailed again.
             </p>
           </section>
 
@@ -94,6 +102,11 @@ export default function Privacy() {
                 Search Console.
               </li>
               <li>
+                <strong>Resend</strong> — only if you send review requests. The recipient's email
+                address, first name and the message are passed to Resend, which delivers the email.
+                See <a href="https://resend.com/legal/privacy-policy">Resend's privacy policy</a>.
+              </li>
+              <li>
                 <strong>Hosting</strong> — the app runs on Render and stores its database on Neon,
                 both of which host the app's infrastructure but do not independently access or use
                 your data.
@@ -110,10 +123,11 @@ export default function Privacy() {
             <p>
               Your data is kept only while the app is installed. If you uninstall Metaglow SEO, Shopify
               notifies the app automatically and all stored data for your shop — access tokens, scan
-              history, Google Search Console tokens — is deleted. The app also honors Shopify's
-              mandatory data-request and customer-redaction webhooks; since it never stores customer
-              personal data, there is nothing to return or redact on those requests beyond confirming
-              that.
+              history, Google Search Console tokens, review requests and replies — is deleted. The app
+              also honors Shopify's mandatory data-request and customer-redaction webhooks: when a
+              customer's data is erased, any review request stored for that email address in your shop
+              is deleted. Addresses that unsubscribed stay on the suppression list so they are not
+              emailed again.
             </p>
           </section>
 
