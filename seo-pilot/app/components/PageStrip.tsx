@@ -10,6 +10,7 @@ const ICONS: Record<string, string> = {
   book: "M4 4h12a4 4 0 014 4v12H8a4 4 0 01-4-4zM4 16a4 4 0 014-4h12",
   card: "M2 6h20v12H2zM2 10h20",
   search: "M21 21l-4.35-4.35M11 18a7 7 0 100-14 7 7 0 000 14z",
+  star: "M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z",
 };
 
 const CSS = `
