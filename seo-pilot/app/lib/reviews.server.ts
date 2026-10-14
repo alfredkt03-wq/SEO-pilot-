@@ -2,6 +2,7 @@
 // emails each one a link to a short rating page, and counts what comes back.
 // Emails go out through Resend (RESEND_API_KEY). The app never reads customers
 // from Shopify; every recipient is typed in by the merchant.
+import { DEFAULT_MESSAGE, DEFAULT_SUBJECT } from "./review-text";
 import { randomBytes } from "node:crypto";
 import db from "../db.server";
 import { REVIEW_EMAILS, REVIEW_MAX_PER_SEND, type Tier } from "./plans";
@@ -76,8 +77,6 @@ function esc(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
-export const DEFAULT_SUBJECT = "How was your order from {store}?";
-export const DEFAULT_MESSAGE = "Thank you for shopping at {store}. Could you spare half a minute to tell us how it went?";
 
 function fill(tpl: string, store: string, name: string | null): string {
   return tpl.replace(/\{store\}/gi, store).replace(/\{name\}/gi, name ? name.split(" ")[0] : "there");
