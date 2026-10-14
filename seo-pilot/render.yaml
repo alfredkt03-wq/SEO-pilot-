@@ -31,7 +31,10 @@ services:
       #   ANTHROPIC_API_KEY    AI writing (console.anthropic.com) — optional; without
       #                        it the AI buttons are hidden
       #   PAGESPEED_API_KEY    optional free Google key for the speed test
-      #   GOOGLE_CLIENT_ID     Search Console (console.cloud.google.com) — optional;
+      #   RESEND_API_KEY       review-request emails (resend.com) — optional; without it
+#   REVIEW_FROM_EMAIL    the Reviews page says email isn't switched on yet.
+#                        An address on a domain verified in Resend, e.g. reviews@yourdomain.com
+#   GOOGLE_CLIENT_ID     Search Console (console.cloud.google.com) — optional;
       #   GOOGLE_CLIENT_SECRET without these, Search Console just says it's not set up
       - key: DATABASE_URL
         sync: false
@@ -46,6 +49,10 @@ services:
       - key: ANTHROPIC_API_KEY
         sync: false
       - key: PAGESPEED_API_KEY
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: REVIEW_FROM_EMAIL
         sync: false
       - key: GOOGLE_CLIENT_ID
         sync: false
