@@ -1,5 +1,5 @@
 import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
-import { Form, Link, useLoaderData } from "react-router";
+import { Form, Link, useLoaderData, useOutlet } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import { isEditorType, searchEditorResources, type EditorResourceType } from "../lib/editor";
@@ -28,6 +28,9 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
 export default function Editor() {
   const { type, q, items } = useLoaderData<typeof loader>();
+  const outlet = useOutlet();
+  // The single-item editor (/app/editor/:type/:id) is a nested route: show it instead of the list.
+  if (outlet) return outlet;
   const noun = TYPES.find((t) => t.value === type)?.label.toLowerCase() ?? type;
 
   return (
