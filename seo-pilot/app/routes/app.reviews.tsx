@@ -8,8 +8,6 @@ import db from "../db.server";
 import { checkPlan } from "../lib/billing.server";
 import { REVIEW_MAX_PER_SEND, TIER_LABEL } from "../lib/plans";
 import {
-  DEFAULT_MESSAGE,
-  DEFAULT_SUBJECT,
   emailsUsedThisMonth,
   monthlyLimit,
   parseRecipients,
@@ -19,6 +17,7 @@ import {
   shopLabel,
 } from "../lib/reviews.server";
 import { PageStrip } from "../components/PageStrip";
+import { DEFAULT_MESSAGE, DEFAULT_SUBJECT, REVIEW_PRESETS } from "../lib/review-text";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { billing, session } = await authenticate.admin(request);
@@ -161,7 +160,7 @@ const CSS = `
 .rv-mail-card{background:#fff;border:1px solid #e1e3e5;border-radius:8px;padding:14px;font-size:12px;line-height:1.5;color:#3d4247}
 .rv-mail-card b{color:#202223}
 .rv-mail-stars{color:#f5a623;font-size:24px;letter-spacing:4px;margin:8px 0 2px}
-.rv-mail-sub{font-size:11px;color:#616a75;margin-bottom:8px}
+.rv-mail-sub{font-size:11px;color:#616a75;margin-bottom:8px;line-height:1.6;overflow-wrap:anywhere}
 @media(max-width:760px){.rv-tiles{grid-template-columns:repeat(2,1fr)}}
 `;
 
@@ -217,6 +216,8 @@ export default function Reviews() {
     if (r.ok) shopify.toast.show("Email saved");
     else if ("error" in r) shopify.toast.show(r.error, { isError: true });
   }, [tplFetcher.data, tplFetcher.state, shopify]);
+
+  const dirty = subject !== (d.subject || d.defaultSubject) || message !== (d.message || d.defaultMessage);
 
   const fillTpl = (t: string) => t.replace(/\{store\}/gi, d.store).replace(/\{name\}/gi, "Anna");
 
@@ -295,6 +296,21 @@ export default function Reviews() {
 
       <s-section heading="Your email">
         <s-stack direction="block" gap="base">
+          <s-stack direction="inline" gap="small-300" alignItems="center">
+            <s-text color="subdued">Start from:</s-text>
+            {REVIEW_PRESETS.map((p) => (
+              <s-button
+                key={p.key}
+                variant="tertiary"
+                onClick={() => {
+                  setSubject(p.subject);
+                  setMessage(p.message);
+                }}
+              >
+                {p.label}
+              </s-button>
+            ))}
+          </s-stack>
           <s-text-field
             name="subject"
             label="Subject"
@@ -319,15 +335,7 @@ export default function Reviews() {
             >
               Save email
             </s-button>
-            <s-button
-              variant="tertiary"
-              onClick={() => {
-                setSubject(d.defaultSubject);
-                setMessage(d.defaultMessage);
-              }}
-            >
-              Use standard text
-            </s-button>
+            {dirty && <s-text color="subdued">Unsaved changes</s-text>}
           </s-stack>
         </s-stack>
       </s-section>
@@ -398,7 +406,11 @@ export default function Reviews() {
       </s-section>
       <s-section slot="aside" heading="Preview">
         <div className="rv-mail">
-          <div className="rv-mail-sub">Subject: {fillTpl(subject || d.defaultSubject)}</div>
+          <div className="rv-mail-sub">
+            <div>From: {d.store}</div>
+            <div>Replies go to: {replyTo.trim() || "not set yet"}</div>
+            <div>Subject: {fillTpl(subject || d.defaultSubject)}</div>
+          </div>
           <div className="rv-mail-card">
             <p style={{ margin: "0 0 8px" }}>Hi Anna,</p>
             <p style={{ margin: 0, whiteSpace: "pre-wrap" }}>{fillTpl(message || d.defaultMessage)}</p>
