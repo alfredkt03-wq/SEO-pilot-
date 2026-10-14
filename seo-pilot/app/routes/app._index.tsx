@@ -731,6 +731,10 @@ export default function Dashboard() {
         </s-unordered-list>
       </s-section>
 
+      <s-section slot="aside" heading="Get more from your SEO">
+        <s-paragraph>Reviews can put star ratings next to your products in Google, and shoppers click those more often. Once your titles and descriptions are fixed, ask recent customers for a review with a reviews app. Good SEO brings the visitors; reviews help turn them into buyers.</s-paragraph>
+      </s-section>
+
       <s-section slot="aside" heading="Also included">
         <s-stack direction="block" gap="base">
           <s-paragraph>
