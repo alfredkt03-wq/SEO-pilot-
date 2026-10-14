@@ -130,6 +130,8 @@ model ShopSettings {
   // public review, who replies go to, and this month's email count.
   reviewLink            String?
   reviewReplyTo         String?
+  reviewSubject         String?
+  reviewMessage         String?
   reviewEmailsMonth     String?
   reviewEmailsUsedMonth Int      @default(0)
 }
