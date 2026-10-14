@@ -24,7 +24,7 @@ async function graphqlWithRetry(admin: any, query: string, options?: any, attemp
 // productUpdate/collectionUpdate replace the whole `seo` object, so writing only
 // the title silently clears the description (and the other way round). Read
 // the current values first and send both.
-async function mergeSeo(admin: any, kind: "product" | "collection", id: string, patch: Record<string, string>) {
+async function mergeSeo(admin: any, kind: "product" | "collection", id: string, patch: { title?: string; description?: string }) {
   const json = await graphqlWithRetry(
     admin,
     `#graphql
