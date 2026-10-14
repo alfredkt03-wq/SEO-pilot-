@@ -29,7 +29,6 @@ const TOOLS: Array<{ key: string; title: string; body: string; href: string; min
   { key: "links", title: "Internal links", body: "Finds pages that mention another page without linking to it, and adds the link in one click.", href: "/app/internal-links", min: "basic" },
   { key: "redirects", title: "Redirects", body: "Fix broken links (404s) by sending the old address to the right page. Exclusive and Agency can import many at once.", href: "/app/redirects", min: null },
   { key: "images", title: "Images", body: "Shrink oversized images so your pages load faster.", href: "/app/images", min: "basic" },
-  { key: "reviews", title: "Review requests", body: "Email customers a short rating request, see who answers, and point happy ones to your public review page.", href: "/app/reviews", min: "premium" },
   { key: "report", title: "SEO report", body: "Your score and open issues on one page, with a CSV download and print to PDF. Agency adds your business name.", href: "/app/report", min: "exclusive" },
 ];
 
