@@ -211,7 +211,7 @@ export async function aiWriteDescriptionHtml(ctx: ResourceContext, imageUrl?: st
     type: "text",
     text: `${describeResource(ctx)}
 
-Write a ${ctx.kind === "COLLECTION" ? "collection" : "product"} description for the store page, 100–150 words in one or two short paragraphs plus an optional short list.${imageUrl ? " A photo of it is attached — you may describe what is clearly visible in it." : ""} Only state facts from the information above${imageUrl ? " or visible in the photo" : ""}; if something (material, size, care, origin) isn't given, leave it out. Format as HTML using only <p>, <ul>, <li> and <strong> tags: one or two short paragraphs, optionally followed by one short bullet list of key features. No headings, no links, no prices, no shipping or delivery promises.${indiaHint(ctx)}`,
+Write a ${ctx.kind === "COLLECTION" ? "collection" : "product"} description for the store page, as many words as the facts above support, between 40 and 150. Write less rather than padding: if little is known, a short description is correct. Use one or two short paragraphs, plus a short list only if the facts naturally form one.${imageUrl ? " A photo of it is attached — you may describe what is clearly visible in it." : ""} Only state facts from the information above${imageUrl ? " or visible in the photo" : ""}; if something (material, size, care, origin) isn't given, leave it out. Format as HTML using only <p>, <ul>, <li> and <strong> tags: one or two short paragraphs, optionally followed by one short bullet list of key features. No headings, no links, no prices, no shipping or delivery promises.${indiaHint(ctx)}`,
   });
   const raw = await callClaude(content, 800);
   const html = sanitizeDescriptionHtml(raw);
