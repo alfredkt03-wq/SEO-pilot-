@@ -98,7 +98,8 @@ export function buildEmail(opts: { store: string; name: string | null; ratingUrl
 <tr><td style="padding:28px 28px 8px;font-size:15px;line-height:1.6">
 <p style="margin:0 0 14px">${esc(hello)}</p>
 <p style="margin:0 0 20px">${opts.reminder ? `A quick reminder from <strong>${esc(opts.store)}</strong>: if you have half a minute, we would love to hear how your order went.` : `Thank you for shopping at <strong>${esc(opts.store)}</strong>. Could you spare half a minute to tell us how it went?`}</p>
-<p style="margin:0 0 22px"><a href="${esc(opts.ratingUrl)}" style="display:inline-block;background:#0f6b57;color:#ffffff;text-decoration:none;padding:12px 22px;border-radius:8px;font-weight:600">Rate your order</a></p>
+<p style="margin:0 0 6px;font-size:13px;color:#616a75">Tap a star to rate your order:</p>
+<p style="margin:0 0 22px;font-size:34px;line-height:1;letter-spacing:6px">${[1, 2, 3, 4, 5].map((n) => `<a href="${esc(`${opts.ratingUrl}?s=${n}`)}" style="color:#f5a623;text-decoration:none" title="${n} out of 5">&#9733;</a>`).join("")}</p>
 <p style="margin:0;color:#616a75;font-size:13px">Your feedback helps ${esc(opts.store)} and other shoppers.</p>
 </td></tr>
 <tr><td style="padding:18px 28px 24px;color:#8c9196;font-size:12px;line-height:1.5">You received this because ${esc(opts.store)} asked for your feedback. <a href="${esc(opts.unsubscribeUrl)}" style="color:#8c9196">Unsubscribe</a></td></tr>
