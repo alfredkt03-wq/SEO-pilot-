@@ -20,6 +20,7 @@ const ICONS: Record<string, string> = {
   redirects: "M5 12h14M13 6l6 6-6 6",
   images: "M4 5h16v14H4V5zM4 16l5-5 4 4 3-3 4 4M15 9.5h.01",
   report: "M5 20V10M12 20V4M19 20v-7",
+  reviews: "M12 3l2.8 5.7 6.2.9-4.5 4.4 1 6.2L12 17.3 6.5 20.2l1-6.2L3 9.6l6.2-.9z",
 };
 
 const TOOLS: Array<{ key: string; title: string; body: string; href: string; min: PaidTier | null }> = [
@@ -28,6 +29,7 @@ const TOOLS: Array<{ key: string; title: string; body: string; href: string; min
   { key: "links", title: "Internal links", body: "Finds pages that mention another page without linking to it, and adds the link in one click.", href: "/app/internal-links", min: "basic" },
   { key: "redirects", title: "Redirects", body: "Fix broken links (404s) by sending the old address to the right page. Exclusive and Agency can import many at once.", href: "/app/redirects", min: null },
   { key: "images", title: "Images", body: "Shrink oversized images so your pages load faster.", href: "/app/images", min: "basic" },
+  { key: "reviews", title: "Review requests", body: "Email customers a short rating request, see who answers, and point happy ones to your public review page.", href: "/app/reviews", min: "premium" },
   { key: "report", title: "SEO report", body: "Your score and open issues on one page, with a CSV download and print to PDF. Agency adds your business name.", href: "/app/report", min: "exclusive" },
 ];
 
