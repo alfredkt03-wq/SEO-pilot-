@@ -440,7 +440,7 @@ export default function Dashboard() {
       )}
 
       {scan && !scan.sitemapOk && (
-        <s-banner heading="Sitemap isn't reachable" tone="critical">
+        <s-banner heading="Sitemap isn't reachable" tone="warning">
           <s-paragraph>
             <s-text type="strong">sitemap.xml</s-text> didn't return a valid sitemap. The most
             common cause is your storefront's password/"coming soon" page still being on — Google
