@@ -126,4 +126,36 @@ model ShopSettings {
   gscClicks28d          Int?
   gscImpressions28d     Int?
   gscTopQueries         String? // JSON array of {query, clicks, impressions}
+  // Review requests (Premium and above): where customers are sent to leave a
+  // public review, who replies go to, and this month's email count.
+  reviewLink            String?
+  reviewReplyTo         String?
+  reviewEmailsMonth     String?
+  reviewEmailsUsedMonth Int      @default(0)
+}
+
+// One row per review-request email a merchant sent. The merchant typed the
+// recipient in themselves; the app never reads customers from Shopify.
+model ReviewRequest {
+  id         String    @id @default(cuid())
+  token      String    @unique
+  shop       String
+  email      String
+  name       String?
+  status     String    @default("sent") // sent | failed
+  sentAt     DateTime  @default(now())
+  clickedAt  DateTime?
+  rating     Int?
+  comment    String?
+  ratedAt    DateTime?
+  remindedAt DateTime?
+
+  @@index([shop, sentAt])
+  @@index([shop, email])
+}
+
+// Addresses that asked not to receive review requests (from any store).
+model EmailOptOut {
+  email     String   @id
+  createdAt DateTime @default(now())
 }
