@@ -76,15 +76,37 @@ function esc(s: string): string {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 }
 
-export function buildEmail(opts: { store: string; name: string | null; ratingUrl: string; unsubscribeUrl: string; reminder?: boolean }) {
+export const DEFAULT_SUBJECT = "How was your order from {store}?";
+export const DEFAULT_MESSAGE = "Thank you for shopping at {store}. Could you spare half a minute to tell us how it went?";
+
+function fill(tpl: string, store: string, name: string | null): string {
+  return tpl.replace(/\{store\}/gi, store).replace(/\{name\}/gi, name ? name.split(" ")[0] : "there");
+}
+
+export function buildEmail(opts: {
+  store: string;
+  name: string | null;
+  ratingUrl: string;
+  unsubscribeUrl: string;
+  reminder?: boolean;
+  subjectTpl?: string | null;
+  messageTpl?: string | null;
+}) {
   const hello = opts.name ? `Hi ${opts.name.split(" ")[0]},` : "Hi,";
-  const subject = opts.reminder ? `A quick reminder: how was your order from ${opts.store}?` : `How was your order from ${opts.store}?`;
+  const subject = opts.reminder
+    ? `A quick reminder: how was your order from ${opts.store}?`
+    : fill(opts.subjectTpl?.trim() || DEFAULT_SUBJECT, opts.store, opts.name).slice(0, 150);
+  const bodyText = opts.reminder
+    ? `A quick reminder from ${opts.store}: if you have half a minute, we would love to hear how your order went.`
+    : fill(opts.messageTpl?.trim() || DEFAULT_MESSAGE, opts.store, opts.name).slice(0, 1500);
+  const bodyHtml = bodyText
+    .split(/\n{2,}/)
+    .map((para, i, a) => `<p style="margin:0 0 ${i === a.length - 1 ? 20 : 12}px">${esc(para).replace(/\n/g, "<br>")}</p>`)
+    .join("\n");
   const text = [
     hello,
     "",
-    opts.reminder
-      ? `A quick reminder from ${opts.store}: if you have half a minute, we would love to hear how your order went.`
-      : `Thank you for shopping at ${opts.store}. Could you spare half a minute to tell us how it went?`,
+    bodyText,
     "",
     `Rate your order: ${opts.ratingUrl}`,
     "",
@@ -97,7 +119,7 @@ export function buildEmail(opts: { store: string; name: string | null; ratingUrl
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background:#ffffff;border:1px solid #e1e3e5;border-radius:8px">
 <tr><td style="padding:28px 28px 8px;font-size:15px;line-height:1.6">
 <p style="margin:0 0 14px">${esc(hello)}</p>
-<p style="margin:0 0 20px">${opts.reminder ? `A quick reminder from <strong>${esc(opts.store)}</strong>: if you have half a minute, we would love to hear how your order went.` : `Thank you for shopping at <strong>${esc(opts.store)}</strong>. Could you spare half a minute to tell us how it went?`}</p>
+${bodyHtml}
 <p style="margin:0 0 6px;font-size:13px;color:#616a75">Tap a star to rate your order:</p>
 <p style="margin:0 0 22px;font-size:34px;line-height:1;letter-spacing:6px">${[1, 2, 3, 4, 5].map((n) => `<a href="${esc(`${opts.ratingUrl}?s=${n}`)}" style="color:#f5a623;text-decoration:none" title="${n} out of 5">&#9733;</a>`).join("")}</p>
 <p style="margin:0;color:#616a75;font-size:13px">Your feedback helps ${esc(opts.store)} and other shoppers.</p>
@@ -192,7 +214,7 @@ export async function sendReviewRequests(opts: {
     const token = randomBytes(18).toString("base64url");
     const ratingUrl = `${appUrl()}/r/${token}`;
     const unsubscribeUrl = `${appUrl()}/u/${token}`;
-    const mail = buildEmail({ store, name: r.name, ratingUrl, unsubscribeUrl });
+    const mail = buildEmail({ store, name: r.name, ratingUrl, unsubscribeUrl, subjectTpl: settings?.reviewSubject, messageTpl: settings?.reviewMessage });
     const result = await sendViaResend({
       to: r.email,
       fromName: store,
