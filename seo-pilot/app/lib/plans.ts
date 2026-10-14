@@ -53,6 +53,11 @@ export const AI_CREDITS: Record<Tier, number> = { free: 0, basic: 125, premium: 
 // How many of each resource type (products, collections, pages)
 // one scan checks. Pages of 50. Free is 0 — a shop must start a paid plan's
 // trial to scan anything.
+// Review-request emails a store can send per month (Premium and above).
+// Most recipients one send can include.
+export const REVIEW_MAX_PER_SEND = 25;
+export const REVIEW_EMAILS: Record<Tier, number> = { free: 0, basic: 0, premium: 50, exclusive: 200, agency: 1000 };
+
 export const SCAN_PAGES: Record<Tier, number> = { free: 0, basic: 6, premium: 10, exclusive: 15, agency: 20 };
 
 const RANK: Record<PaidTier, number> = { basic: 1, premium: 2, exclusive: 3, agency: 4 };
