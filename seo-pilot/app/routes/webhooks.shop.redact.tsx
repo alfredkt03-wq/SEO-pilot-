@@ -11,6 +11,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   await db.session.deleteMany({ where: { shop } });
   await db.seoIssue.deleteMany({ where: { shop } });
   await db.seoScan.deleteMany({ where: { shop } });
+  await db.reviewRequest.deleteMany({ where: { shop } });
   await db.shopSettings.deleteMany({ where: { shop } });
 
   return new Response();
