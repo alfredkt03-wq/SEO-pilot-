@@ -214,6 +214,21 @@ const DASH_CSS = `
 .sp-banner-text span{font-size:13px;line-height:1.45;color:#616a75}
 .sp-more-head{display:flex;align-items:center;gap:10px;width:100%}
 .sp-more-icon{width:30px;height:30px;border-radius:7px;flex:none;display:flex;align-items:center;justify-content:center;color:#0f6b57;background:#e8f3ef;border:1px solid #c6e0d6}
+.sp-steps{list-style:none;margin:0;padding:0;display:flex;gap:0;flex-wrap:wrap}
+.sp-steps li{flex:1;min-width:200px;display:flex;gap:12px;padding:4px 18px 4px 0}
+.sp-steps li+li{padding-left:18px;border-left:1px solid #e1e3e5}
+.sp-step-n{font-size:28px;line-height:1;font-weight:700;color:#0f6b57;flex:none}
+.sp-steps b{font-size:14px;color:#202223}
+.sp-steps p{margin:2px 0 0;font-size:13px;line-height:1.5;color:#616a75}
+.sp-steps-foot{margin:14px 0 0;font-size:13px;color:#616a75}
+.sp-tool-list{list-style:none;margin:0;padding:0}
+.sp-tool-list li{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 0;border-top:1px solid #e1e3e5}
+.sp-tool-list li:first-child{border-top:0;padding-top:0}
+.sp-tool-text{display:flex;flex-direction:column;gap:2px;min-width:0}
+.sp-tool-text b{font-size:14px;color:#202223}
+.sp-tool-text span{font-size:13px;color:#616a75}
+.sp-tool-plan{font-weight:500;color:#0f6b57}
+@media (max-width:700px){.sp-steps li+li{border-left:0;padding-left:0;padding-top:12px}}
 @media (prefers-reduced-motion:reduce){.sp-tile,.sp-more-card{transition:none}.sp-tile:hover,.sp-more-card:hover{transform:none}}
 `;
 
@@ -607,25 +622,40 @@ export default function Dashboard() {
         )}
       </s-section>
 
+      <s-section heading="How Metaglow SEO works">
+        <ol className="sp-steps">
+          <li>
+            <span className="sp-step-n">1</span>
+            <div><b>Scan</b><p>We check every product, collection and page for things that keep Google from showing it.</p></div>
+          </li>
+          <li>
+            <span className="sp-step-n">2</span>
+            <div><b>Fix</b><p>Let AI write the text, write it yourself, or fix everything automatically. You approve each change.</p></div>
+          </li>
+          <li>
+            <span className="sp-step-n">3</span>
+            <div><b>Track</b><p>Re-scan any time. Your score and the issues you fixed are shown right here.</p></div>
+          </li>
+        </ol>
+        <p className="sp-steps-foot">New to SEO? <s-link href="/app/manual">Read the short guide</s-link></p>
+      </s-section>
+
       {hasActivePayment && (
-        <s-section heading="Do more with Metaglow SEO">
-          <div className="sp-more">
-            {MORE_TOOLS.map((t) => (
-              <div className="sp-more-card" key={t.href}>
-                <div className="sp-more-head">
-                  <span className="sp-more-icon" aria-hidden="true">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d={t.icon} /></svg>
-                  </span>
-                  <div className="sp-more-top">
-                    <span className="sp-more-title">{t.title}</span>
-                    {TIER_RANK[tier] < TIER_RANK[t.min] && <span className="sp-more-plan">{TIER_LABEL[t.min]}</span>}
+        <s-section heading="More tools">
+          <ul className="sp-tool-list">
+            {MORE_TOOLS.map((t) => {
+              const locked = TIER_RANK[tier] < TIER_RANK[t.min];
+              return (
+                <li key={t.href}>
+                  <div className="sp-tool-text">
+                    <b>{t.title}{locked && <span className="sp-tool-plan"> · {TIER_LABEL[t.min]} plan</span>}</b>
+                    <span>{t.body}</span>
                   </div>
-                </div>
-                <p>{t.body}</p>
-                <s-button variant="secondary" href={t.href}>{TIER_RANK[tier] < TIER_RANK[t.min] ? "See plans" : t.cta}</s-button>
-              </div>
-            ))}
-          </div>
+                  <s-link href={locked ? "/app/billing" : t.href}>{locked ? "See plans" : t.cta}</s-link>
+                </li>
+              );
+            })}
+          </ul>
         </s-section>
       )}
 
