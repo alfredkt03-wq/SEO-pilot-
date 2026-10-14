@@ -9,12 +9,12 @@ const CSS = `
   .cp-card { width: 100%; max-width: 480px; align-self: flex-start; background: #fff; border: 1px solid #e1e3e5; border-radius: 8px; padding: 28px; box-sizing: border-box; }
   .cp-card h1 { font-size: 21px; line-height: 1.3; margin: 0 0 10px; text-wrap: balance; }
   .cp-card p { font-size: 15px; line-height: 1.6; margin: 0 0 16px; color: #3d4247; }
-  .cp-stars { display: flex; gap: 8px; margin: 18px 0; flex-wrap: wrap; }
+  .cp-stars { display: flex; flex-direction: row-reverse; justify-content: flex-end; gap: 4px; margin: 14px 0 6px; }
   .cp-stars input { position: absolute; opacity: 0; pointer-events: none; }
-  .cp-stars label { width: 48px; height: 48px; border: 1px solid #c9cccf; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 17px; font-weight: 600; cursor: pointer; background: #fff; color: #3d4247; }
-  .cp-stars input:checked + label { background: #0f6b57; border-color: #0f6b57; color: #fff; }
-  .cp-stars input:focus-visible + label { outline: 2px solid #0f6b57; outline-offset: 2px; }
-  .cp-scale { display: flex; justify-content: space-between; font-size: 12px; color: #616a75; margin: -8px 0 18px; max-width: 288px; }
+  .cp-stars label { font-size: 44px; line-height: 1; cursor: pointer; color: #d5d8db; padding: 0 2px; }
+  .cp-stars label:hover, .cp-stars label:hover ~ label, .cp-stars input:checked ~ label, .cp-stars input:checked + label { color: #f5a623; }
+  .cp-stars input:focus-visible + label { outline: 2px solid #0f6b57; outline-offset: 2px; border-radius: 4px; }
+  .cp-scale { display: flex; justify-content: space-between; font-size: 12px; color: #616a75; margin: 0 0 18px; max-width: 288px; }
   .cp-card textarea { width: 100%; box-sizing: border-box; min-height: 96px; border: 1px solid #c9cccf; border-radius: 8px; padding: 10px 12px; font: inherit; font-size: 15px; resize: vertical; margin: 6px 0 16px; }
   .cp-card label.cp-label { font-size: 14px; font-weight: 600; }
   .cp-btn { display: inline-block; background: #0f6b57; color: #fff; border: 0; border-radius: 8px; padding: 12px 22px; font: inherit; font-weight: 600; font-size: 15px; cursor: pointer; text-decoration: none; }
