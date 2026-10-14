@@ -135,7 +135,7 @@ const CSS = `
 .rv-mail{border:1px solid #e1e3e5;border-radius:8px;background:#f6f6f7;padding:12px}
 .rv-mail-card{background:#fff;border:1px solid #e1e3e5;border-radius:8px;padding:14px;font-size:12px;line-height:1.5;color:#3d4247}
 .rv-mail-card b{color:#202223}
-.rv-mail-btn{display:inline-block;margin:8px 0;background:#0f6b57;color:#fff;border-radius:6px;padding:7px 12px;font-weight:600;font-size:12px}
+.rv-mail-stars{color:#f5a623;font-size:24px;letter-spacing:4px;margin:8px 0 2px}
 .rv-mail-sub{font-size:11px;color:#616a75;margin-bottom:8px}
 @media(max-width:760px){.rv-tiles{grid-template-columns:repeat(2,1fr)}}
 `;
@@ -326,7 +326,7 @@ export default function Reviews() {
           <div className="rv-mail-card">
             <p style={{ margin: "0 0 8px" }}>Hi Anna,</p>
             <p style={{ margin: 0 }}>Thank you for shopping at <b>{d.store}</b>. Could you spare half a minute to tell us how it went?</p>
-            <span className="rv-mail-btn">Rate your order</span>
+            <div className="rv-mail-stars" aria-hidden="true">★★★★★</div>
           </div>
         </div>
       </s-section>
