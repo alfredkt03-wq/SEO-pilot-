@@ -1,5 +1,6 @@
 // Public rating page a customer reaches from a review-request email.
 // No Shopify login: the random token in the link identifies the request.
+import { Fragment } from "react";
 import type { ActionFunctionArgs, LoaderFunctionArgs } from "react-router";
 import { Form, useActionData, useLoaderData } from "react-router";
 import db from "../db.server";
@@ -13,14 +14,16 @@ async function findRequest(token: string | undefined) {
   return db.reviewRequest.findUnique({ where: { token } });
 }
 
-export const loader = async ({ params }: LoaderFunctionArgs) => {
+export const loader = async ({ params, request }: LoaderFunctionArgs) => {
   const req = await findRequest(params.token);
   if (!req || req.status !== "sent") throw new Response("Not found", { status: 404 });
   const settings = await db.shopSettings.findUnique({ where: { shop: req.shop } });
   if (!req.clickedAt) {
     await db.reviewRequest.update({ where: { id: req.id }, data: { clickedAt: new Date() } });
   }
+  const preset = Number(new URL(request.url).searchParams.get("s"));
   return {
+    preset: Number.isInteger(preset) && preset >= 1 && preset <= 5 ? preset : null,
     store: shopLabel(req.shop, settings?.brandName),
     name: req.name ? req.name.split(" ")[0] : null,
     rated: req.rating !== null,
@@ -74,11 +77,11 @@ export default function Rate() {
         <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
           <legend className="cp-label">Your rating</legend>
           <div className="cp-stars">
-            {[1, 2, 3, 4, 5].map((n) => (
-              <span key={n}>
-                <input type="radio" id={`r${n}`} name="rating" value={n} required />
-                <label htmlFor={`r${n}`} aria-label={`${n} out of 5`}>{n}</label>
-              </span>
+            {[5, 4, 3, 2, 1].map((n) => (
+              <Fragment key={n}>
+                <input type="radio" id={`r${n}`} name="rating" value={n} defaultChecked={d.preset === n} required />
+                <label htmlFor={`r${n}`} aria-label={`${n} out of 5`} title={`${n} out of 5`}>★</label>
+              </Fragment>
             ))}
           </div>
           <div className="cp-scale"><span>Poor</span><span>Excellent</span></div>
