@@ -8,6 +8,8 @@ import db from "../db.server";
 import { checkPlan } from "../lib/billing.server";
 import { REVIEW_MAX_PER_SEND, TIER_LABEL } from "../lib/plans";
 import {
+  DEFAULT_MESSAGE,
+  DEFAULT_SUBJECT,
   emailsUsedThisMonth,
   monthlyLimit,
   parseRecipients,
@@ -34,6 +36,10 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     store: shopLabel(session.shop, settings?.brandName),
     reviewLink: settings?.reviewLink ?? "",
     replyTo: settings?.reviewReplyTo ?? "",
+    subject: settings?.reviewSubject ?? "",
+    message: settings?.reviewMessage ?? "",
+    defaultSubject: DEFAULT_SUBJECT,
+    defaultMessage: DEFAULT_MESSAGE,
     stats: {
       sent: stats.sent,
       clicked: stats.clicked,
@@ -87,6 +93,25 @@ export const action = async ({ request }: ActionFunctionArgs) => {
       create: { shop: session.shop, reviewLink: link || null, reviewReplyTo: replyTo || null },
     });
     return { ok: true as const, mode: "settings" };
+  }
+
+  if (intent === "template") {
+    const subject = String(form.get("subject") ?? "").trim().slice(0, 150);
+    const message = String(form.get("message") ?? "").replace(/\r\n/g, "\n").trim().slice(0, 1500);
+    // Saving the standard text (or nothing) stores null so the default is used.
+    await db.shopSettings.upsert({
+      where: { shop: session.shop },
+      update: {
+        reviewSubject: subject && subject !== DEFAULT_SUBJECT ? subject : null,
+        reviewMessage: message && message !== DEFAULT_MESSAGE ? message : null,
+      },
+      create: {
+        shop: session.shop,
+        reviewSubject: subject && subject !== DEFAULT_SUBJECT ? subject : null,
+        reviewMessage: message && message !== DEFAULT_MESSAGE ? message : null,
+      },
+    });
+    return { ok: true as const, mode: "template" };
   }
 
   if (intent === "send") {
@@ -153,6 +178,9 @@ export default function Reviews() {
   const [consent, setConsent] = useState(false);
   const [reviewLink, setReviewLink] = useState(d.reviewLink);
   const [replyTo, setReplyTo] = useState(d.replyTo);
+  const [subject, setSubject] = useState(d.subject || d.defaultSubject);
+  const [message, setMessage] = useState(d.message || d.defaultMessage);
+  const tplFetcher = useFetcher<typeof action>();
 
   const sending = sendFetcher.state !== "idle";
   const saving = saveFetcher.state !== "idle";
@@ -182,6 +210,15 @@ export default function Reviews() {
     if (r.ok) shopify.toast.show("Saved");
     else if ("error" in r) shopify.toast.show(r.error, { isError: true });
   }, [saveFetcher.data, saveFetcher.state, shopify]);
+
+  useEffect(() => {
+    const r = tplFetcher.data;
+    if (!r || tplFetcher.state !== "idle") return;
+    if (r.ok) shopify.toast.show("Email saved");
+    else if ("error" in r) shopify.toast.show(r.error, { isError: true });
+  }, [tplFetcher.data, tplFetcher.state, shopify]);
+
+  const fillTpl = (t: string) => t.replace(/\{store\}/gi, d.store).replace(/\{name\}/gi, "Anna");
 
   if (!d.allowed) {
     return (
@@ -256,6 +293,45 @@ export default function Reviews() {
         </s-stack>
       </s-section>
 
+      <s-section heading="Your email">
+        <s-stack direction="block" gap="base">
+          <s-text-field
+            name="subject"
+            label="Subject"
+            value={subject}
+            maxLength={150}
+            onInput={(e: any) => setSubject(e.target.value)}
+          />
+          <s-text-area
+            name="message"
+            label="Message"
+            rows={5}
+            value={message}
+            maxLength={1500}
+            onInput={(e: any) => setMessage(e.target.value)}
+            details="Write it like you would to a customer. Use {store} for your store name and {name} for their first name. The greeting, the star rating and the unsubscribe link are added automatically."
+          />
+          <s-stack direction="inline" gap="base">
+            <s-button
+              variant="primary"
+              {...(tplFetcher.state !== "idle" ? { loading: true } : {})}
+              onClick={() => tplFetcher.submit({ intent: "template", subject, message }, { method: "post" })}
+            >
+              Save email
+            </s-button>
+            <s-button
+              variant="tertiary"
+              onClick={() => {
+                setSubject(d.defaultSubject);
+                setMessage(d.defaultMessage);
+              }}
+            >
+              Use standard text
+            </s-button>
+          </s-stack>
+        </s-stack>
+      </s-section>
+
       <s-section heading="Where replies and reviews go">
         <s-stack direction="block" gap="base">
           <s-text-field
@@ -320,12 +396,12 @@ export default function Reviews() {
           <s-list-item>Their rating shows up here. Everyone is also offered your public review link.</s-list-item>
         </s-unordered-list>
       </s-section>
-      <s-section slot="aside" heading="What customers get">
+      <s-section slot="aside" heading="Preview">
         <div className="rv-mail">
-          <div className="rv-mail-sub">Subject: How was your order from {d.store}?</div>
+          <div className="rv-mail-sub">Subject: {fillTpl(subject || d.defaultSubject)}</div>
           <div className="rv-mail-card">
             <p style={{ margin: "0 0 8px" }}>Hi Anna,</p>
-            <p style={{ margin: 0 }}>Thank you for shopping at <b>{d.store}</b>. Could you spare half a minute to tell us how it went?</p>
+            <p style={{ margin: 0, whiteSpace: "pre-wrap" }}>{fillTpl(message || d.defaultMessage)}</p>
             <div className="rv-mail-stars" aria-hidden="true">★★★★★</div>
           </div>
         </div>
