@@ -66,7 +66,8 @@ export function parseRecipients(text: string): { valid: Recipient[]; invalid: st
 }
 
 function appUrl(): string {
-  return (process.env.SHOPIFY_APP_URL || "").replace(/\/$/, "");
+  // Same fallback order as shopify.server.ts: Render sets RENDER_EXTERNAL_URL even when SHOPIFY_APP_URL isn't configured.
+  return (process.env.SHOPIFY_APP_URL || process.env.HOST || process.env.RENDER_EXTERNAL_URL || "").replace(/\/$/, "");
 }
 
 export function shopLabel(shop: string, brandName: string | null | undefined): string {
