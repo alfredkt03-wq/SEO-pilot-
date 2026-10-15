@@ -479,18 +479,68 @@ export default function Dashboard() {
         </div>
       </div>
       <s-section heading="All tools">
-        <s-stack direction="inline" gap="base">
-          <s-button size="large" href="/app/fixes">Fixes</s-button>
-          <s-button size="large" href="/app/editor">Editor</s-button>
-          <s-button size="large" href="/app/bulk">Bulk editor</s-button>
-          <s-button size="large" href="/app/autopilot">Autopilot</s-button>
-          <s-button size="large" href="/app/content">Content check</s-button>
-          <s-button size="large" href="/app/internal-links">Internal links</s-button>
-          <s-button size="large" href="/app/redirects">Redirects</s-button>
-          <s-button size="large" href="/app/images">Images</s-button>
-          <s-button size="large" href="/app/reviews">Reviews</s-button>
-          <s-button size="large" href="/app/billing">Plans</s-button>
-        </s-stack>
+        <s-grid gridTemplateColumns="repeat(auto-fit, minmax(190px, 1fr))" gap="base">
+          <s-clickable href="/app/fixes" border="base" borderRadius="base" padding="base">
+            <s-stack gap="small-300">
+              <s-text type="strong">Fixes</s-text>
+              <s-text color="subdued">Fix what Google cannot see</s-text>
+            </s-stack>
+          </s-clickable>
+          <s-clickable href="/app/editor" border="base" borderRadius="base" padding="base">
+            <s-stack gap="small-300">
+              <s-text type="strong">Editor</s-text>
+              <s-text color="subdued">Edit titles and descriptions</s-text>
+            </s-stack>
+          </s-clickable>
+          <s-clickable href="/app/bulk" border="base" borderRadius="base" padding="base">
+            <s-stack gap="small-300">
+              <s-text type="strong">Bulk editor</s-text>
+              <s-text color="subdued">Edit many products at once</s-text>
+            </s-stack>
+          </s-clickable>
+          <s-clickable href="/app/autopilot" border="base" borderRadius="base" padding="base">
+            <s-stack gap="small-300">
+              <s-text type="strong">Autopilot</s-text>
+              <s-text color="subdued">Check each new product</s-text>
+            </s-stack>
+          </s-clickable>
+          <s-clickable href="/app/content" border="base" borderRadius="base" padding="base">
+            <s-stack gap="small-300">
+              <s-text type="strong">Content check</s-text>
+              <s-text color="subdued">Find pages with too little text</s-text>
+            </s-stack>
+          </s-clickable>
+          <s-clickable href="/app/internal-links" border="base" borderRadius="base" padding="base">
+            <s-stack gap="small-300">
+              <s-text type="strong">Internal links</s-text>
+              <s-text color="subdued">Link your pages together</s-text>
+            </s-stack>
+          </s-clickable>
+          <s-clickable href="/app/redirects" border="base" borderRadius="base" padding="base">
+            <s-stack gap="small-300">
+              <s-text type="strong">Redirects</s-text>
+              <s-text color="subdued">Fix broken links</s-text>
+            </s-stack>
+          </s-clickable>
+          <s-clickable href="/app/images" border="base" borderRadius="base" padding="base">
+            <s-stack gap="small-300">
+              <s-text type="strong">Images</s-text>
+              <s-text color="subdued">Shrink big images</s-text>
+            </s-stack>
+          </s-clickable>
+          <s-clickable href="/app/reviews" border="base" borderRadius="base" padding="base">
+            <s-stack gap="small-300">
+              <s-text type="strong">Reviews</s-text>
+              <s-text color="subdued">Ask customers for a review</s-text>
+            </s-stack>
+          </s-clickable>
+          <s-clickable href="/app/billing" border="base" borderRadius="base" padding="base">
+            <s-stack gap="small-300">
+              <s-text type="strong">Plans</s-text>
+              <s-text color="subdued">Your plan and billing</s-text>
+            </s-stack>
+          </s-clickable>
+        </s-grid>
       </s-section>
       <s-section heading="Store SEO score">
         {!scan ? (
