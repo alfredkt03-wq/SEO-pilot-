@@ -475,9 +475,23 @@ export default function Dashboard() {
         </span>
         <div className="sp-banner-text">
           <b>Your store's SEO, in plain words</b>
-          <span>Scan, review what Google can't see, then fix it automatically or write the text yourself.</span>
+          <span>Scan, review what Google cannot see, then fix it with one click or write the text yourself.</span>
         </div>
       </div>
+      <s-section heading="All tools">
+        <s-stack direction="inline" gap="small">
+          <s-button href="/app/fixes">Fixes</s-button>
+          <s-button href="/app/editor">Editor</s-button>
+          <s-button href="/app/bulk">Bulk editor</s-button>
+          <s-button href="/app/autopilot">Autopilot</s-button>
+          <s-button href="/app/content">Content check</s-button>
+          <s-button href="/app/internal-links">Internal links</s-button>
+          <s-button href="/app/redirects">Redirects</s-button>
+          <s-button href="/app/images">Images</s-button>
+          <s-button href="/app/reviews">Reviews</s-button>
+          <s-button href="/app/billing">Plans</s-button>
+        </s-stack>
+      </s-section>
       <s-section heading="Store SEO score">
         {!scan ? (
           <div className="sp-empty">
