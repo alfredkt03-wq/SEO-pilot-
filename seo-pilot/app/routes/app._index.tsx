@@ -461,8 +461,8 @@ export default function Dashboard() {
             common cause is your storefront's password/"coming soon" page still being on — Google
             can't index anything while that's active.
           </s-paragraph>
-          <s-button slot="secondary-actions" href={`https://${shopDomain}`} target="_blank">
-            Check storefront
+          <s-button slot="secondary-actions" href={`https://admin.shopify.com/store/${shopDomain.replace(".myshopify.com", "")}/online_store/preferences`} target="_top">
+            Open password settings
           </s-button>
         </s-banner>
       )}
