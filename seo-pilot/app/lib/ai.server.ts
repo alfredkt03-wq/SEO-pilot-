@@ -158,7 +158,8 @@ export async function aiWriteSeoTitle(ctx: ResourceContext): Promise<string> {
 Write the SEO title (the blue headline in Google results) for this ${ctx.kind.toLowerCase()}. 45–65 characters, never more than ${SEO_TITLE_MAX}. Most important search words first.${indiaHint(ctx)}`,
     120,
   );
-  return finish(text, SEO_TITLE_MAX);
+  const first = finish(text, SEO_TITLE_MAX);
+  return first.length >= 40 ? first : (await expandShort(ctx, first, "SEO title", 50, 65, SEO_TITLE_MAX, 120)) ?? first;
 }
 
 export async function aiWriteMetaDescription(ctx: ResourceContext): Promise<string> {
@@ -168,7 +169,35 @@ export async function aiWriteMetaDescription(ctx: ResourceContext): Promise<stri
 Write the meta description (the text under the headline in Google results). 130–155 characters, never more than ${META_DESC_MAX}. Say what it is and give one concrete reason to click, based only on the information above.${indiaHint(ctx)}`,
     200,
   );
-  return finish(text, META_DESC_MAX);
+  const first = finish(text, META_DESC_MAX);
+  return first.length >= 120 ? first : (await expandShort(ctx, first, "meta description", 135, 155, META_DESC_MAX, 200)) ?? first;
+}
+
+// The first draft came back too short (common when a product has little text).
+// Ask once more for the full length, built from the name, category and brand
+// plus plain wording that is true of any such item. Never invents facts.
+async function expandShort(
+  ctx: ResourceContext,
+  draft: string,
+  label: string,
+  min: number,
+  target: number,
+  max: number,
+  maxTokens: number,
+): Promise<string | null> {
+  try {
+    const text = await callClaude(
+      `${describeResource(ctx)}
+
+Draft ${label}: "${draft}"
+That draft is only ${draft.length} characters, too short to use well in Google. Rewrite it so it is ${min}–${target} characters, never more than ${max}. Keep every fact from above and add natural wording that is true of any ${ctx.kind.toLowerCase()} like this one (what it is, who it suits, what it is used for, a plain call to action such as "Shop online"). Do not invent specific facts and do not repeat words.${indiaHint(ctx)}`,
+      maxTokens,
+    );
+    const out = finish(text, max);
+    return out.length > draft.length ? out : null;
+  } catch {
+    return null;
+  }
 }
 
 export async function aiWriteAltText(productTitle: string, imageUrl: string): Promise<string> {
