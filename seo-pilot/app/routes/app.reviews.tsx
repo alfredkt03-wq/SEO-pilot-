@@ -169,6 +169,7 @@ const CSS = `
 .rv-note{font-size:13px;color:#3d4247;margin-top:2px}
 .rv-stars{color:#b7791f;letter-spacing:1px;font-size:14px;white-space:nowrap}
 .rv-pill{font-size:12px;font-weight:600;border-radius:999px;padding:2px 10px;white-space:nowrap}
+.rv-alt{background:#fff;color:#3d4247;border-color:#c9cccf}
 .rv-open{font-size:13px;font-weight:600;color:#0f6b57;text-decoration:none;padding:6px 10px;border:1px solid #c6e0d6;border-radius:6px;background:#e8f3ef;white-space:nowrap}
 .rv-pill.sent{background:#f1f2f3;color:#616a75}
 .rv-pill.open{background:#e8f3ef;color:#0f6b57}
@@ -326,7 +327,7 @@ export default function Reviews() {
       {prepared.length > 0 && (
         <s-section heading={`Ready to send (${prepared.length})`}>
           <s-stack direction="block" gap="small-300">
-            <s-text color="subdued">Open each one in your email app, or copy it and paste it into any mail or chat.</s-text>
+            <s-text color="subdued">Open each one in Gmail or Outlook, or copy it and paste it into any mail or chat.</s-text>
             {prepared.map((p) => (
               <div className="rv-row" key={p.email}>
                 <div className="rv-who">
@@ -336,10 +337,18 @@ export default function Reviews() {
                 <s-stack direction="inline" gap="small-300">
                   <a
                     className="rv-open"
+                    target="_blank"
+                    rel="noreferrer"
+                    href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(p.email)}&su=${encodeURIComponent(p.subject)}&body=${encodeURIComponent(p.text)}`}
+                  >
+                    Open in Gmail
+                  </a>
+                  <a
+                    className="rv-open rv-alt"
                     target="_top"
                     href={`mailto:${p.email}?subject=${encodeURIComponent(p.subject)}&body=${encodeURIComponent(p.text)}`}
                   >
-                    Open in email app
+                    Outlook / other
                   </a>
                   <s-button
                     variant="tertiary"
@@ -348,7 +357,7 @@ export default function Reviews() {
                         await navigator.clipboard.writeText(`Subject: ${p.subject}\n\n${p.text}`);
                         shopify.toast.show("Copied");
                       } catch {
-                        shopify.toast.show("Couldn't copy — use Open in email app", { isError: true });
+                        shopify.toast.show("Couldn't copy — use Open in Gmail", { isError: true });
                       }
                     }}
                   >
