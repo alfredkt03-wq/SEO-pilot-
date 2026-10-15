@@ -244,6 +244,56 @@ export async function sendReviewRequests(opts: {
   return summary;
 }
 
+// "Send from my own email" mode, used when no email service is set up on the
+// server. Creates the same tracked rating links, but nothing is emailed by the
+// app: the merchant copies each message or opens it in their own mail app.
+export interface PreparedEmail {
+  email: string;
+  name: string | null;
+  subject: string;
+  text: string;
+}
+
+export async function prepareReviewLinks(opts: {
+  shop: string;
+  recipients: Recipient[];
+  invalid: string[];
+}): Promise<{ items: PreparedEmail[]; skippedOptedOut: number; skippedRecent: number; invalid: string[] }> {
+  const { shop } = opts;
+  const settings = await db.shopSettings.findUnique({ where: { shop } });
+  const store = shopLabel(shop, settings?.brandName);
+  const since = new Date(Date.now() - RESEND_AGAIN_DAYS * 86400000);
+  const emails = opts.recipients.map((r) => r.email);
+  const optedOut = new Set((await db.emailOptOut.findMany({ where: { email: { in: emails } } })).map((o) => o.email));
+  const recent = new Set(
+    (
+      await db.reviewRequest.findMany({
+        where: { shop, status: "sent", sentAt: { gte: since }, email: { in: emails } },
+        select: { email: true },
+      })
+    ).map((r) => r.email),
+  );
+  const items: PreparedEmail[] = [];
+  let skippedOptedOut = 0;
+  let skippedRecent = 0;
+  for (const r of opts.recipients) {
+    if (optedOut.has(r.email)) { skippedOptedOut++; continue; }
+    if (recent.has(r.email)) { skippedRecent++; continue; }
+    const token = randomBytes(18).toString("base64url");
+    const mail = buildEmail({
+      store,
+      name: r.name,
+      ratingUrl: `${appUrl()}/r/${token}`,
+      unsubscribeUrl: `${appUrl()}/u/${token}`,
+      subjectTpl: settings?.reviewSubject,
+      messageTpl: settings?.reviewMessage,
+    });
+    await db.reviewRequest.create({ data: { token, shop, email: r.email, name: r.name, status: "sent" } });
+    items.push({ email: r.email, name: r.name, subject: mail.subject, text: mail.text });
+  }
+  return { items, skippedOptedOut, skippedRecent, invalid: opts.invalid };
+}
+
 export async function reviewStats(shop: string) {
   const [sent, clicked, rated, avg, recent] = await Promise.all([
     db.reviewRequest.count({ where: { shop, status: "sent" } }),
