@@ -11,6 +11,7 @@ import {
   emailsUsedThisMonth,
   monthlyLimit,
   parseRecipients,
+  prepareReviewLinks,
   reviewStats,
   reviewsConfigured,
   sendReviewRequests,
@@ -113,6 +114,21 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     return { ok: true as const, mode: "template" };
   }
 
+  if (intent === "prepare") {
+    if (form.get("consent") !== "yes") {
+      return { ok: false as const, mode: "prepare", error: "Please confirm these customers bought from you." };
+    }
+    const { valid, invalid } = parseRecipients(String(form.get("recipients") ?? ""));
+    if (valid.length === 0) {
+      return { ok: false as const, mode: "prepare", error: "Add at least one valid email address." };
+    }
+    if (valid.length > REVIEW_MAX_PER_SEND) {
+      return { ok: false as const, mode: "prepare", error: `Up to ${REVIEW_MAX_PER_SEND} at a time.` };
+    }
+    const prepared = await prepareReviewLinks({ shop: session.shop, recipients: valid, invalid });
+    return { ok: true as const, mode: "prepare", prepared };
+  }
+
   if (intent === "send") {
     if (!reviewsConfigured()) {
       return { ok: false as const, mode: "send", error: "Email sending isn't set up on this server yet." };
@@ -153,6 +169,7 @@ const CSS = `
 .rv-note{font-size:13px;color:#3d4247;margin-top:2px}
 .rv-stars{color:#b7791f;letter-spacing:1px;font-size:14px;white-space:nowrap}
 .rv-pill{font-size:12px;font-weight:600;border-radius:999px;padding:2px 10px;white-space:nowrap}
+.rv-open{font-size:13px;font-weight:600;color:#0f6b57;text-decoration:none;padding:6px 10px;border:1px solid #c6e0d6;border-radius:6px;background:#e8f3ef;white-space:nowrap}
 .rv-pill.sent{background:#f1f2f3;color:#616a75}
 .rv-pill.open{background:#e8f3ef;color:#0f6b57}
 .rv-pill.bad{background:#fdecea;color:#b42318}
@@ -175,6 +192,7 @@ export default function Reviews() {
   const shopify = useAppBridge();
   const [recipients, setRecipients] = useState("");
   const [consent, setConsent] = useState(false);
+  const [prepared, setPrepared] = useState<Array<{ email: string; name: string | null; subject: string; text: string }>>([]);
   const [reviewLink, setReviewLink] = useState(d.reviewLink);
   const [replyTo, setReplyTo] = useState(d.replyTo);
   const [subject, setSubject] = useState(d.subject || d.defaultSubject);
@@ -188,7 +206,16 @@ export default function Reviews() {
   useEffect(() => {
     const r = sendFetcher.data;
     if (!r || sendFetcher.state !== "idle") return;
-    if (r.ok && "summary" in r && r.summary) {
+    if (r.ok && "prepared" in r && r.prepared) {
+      const p = r.prepared;
+      const bits = [`${p.items.length} ready`];
+      if (p.skippedRecent) bits.push(`${p.skippedRecent} asked in the last 30 days`);
+      if (p.skippedOptedOut) bits.push(`${p.skippedOptedOut} unsubscribed`);
+      if (p.invalid.length) bits.push(`${p.invalid.length} not valid`);
+      shopify.toast.show(bits.join(" · "));
+      setPrepared(p.items);
+      if (p.items.length > 0) setRecipients("");
+    } else if (r.ok && "summary" in r && r.summary) {
       const s = r.summary;
       const bits = [`${s.sent} sent`];
       if (s.skippedRecent) bits.push(`${s.skippedRecent} asked in the last 30 days`);
@@ -245,8 +272,8 @@ export default function Reviews() {
       <PageStrip icon="star" title="Ask happy customers for a review" text="Send a short request by email and see who rates you." />
 
       {!d.configured && (
-        <s-banner tone="warning" heading="Email sending isn't switched on yet">
-          <s-paragraph>The app owner still needs to finish the email setup on the server. You can fill in your details below in the meantime.</s-paragraph>
+        <s-banner tone="info" heading="You send these from your own email">
+          <s-paragraph>Paste your customers, press Create emails, then send each one from your own mail app with one click. Every rating link is tracked here.</s-paragraph>
         </s-banner>
       )}
 
@@ -281,18 +308,58 @@ export default function Reviews() {
           <s-stack direction="inline" gap="base" alignItems="center">
             <s-button
               variant="primary"
-              disabled={!d.configured || !consent || recipients.trim() === "" || left === 0}
+              disabled={!consent || recipients.trim() === "" || (d.configured && left === 0)}
               {...(sending ? { loading: true } : {})}
-              onClick={() => sendFetcher.submit({ intent: "send", recipients, consent: consent ? "yes" : "no" }, { method: "post" })}
+              onClick={() => sendFetcher.submit({ intent: d.configured ? "send" : "prepare", recipients, consent: consent ? "yes" : "no" }, { method: "post" })}
             >
-              Send requests
+              {d.configured ? "Send requests" : "Create emails"}
             </s-button>
-            <s-text color="subdued">
-              {left} of {d.limit} left this month on {TIER_LABEL[d.tier]}
-            </s-text>
+            {d.configured && (
+              <s-text color="subdued">
+                {left} of {d.limit} left this month on {TIER_LABEL[d.tier]}
+              </s-text>
+            )}
           </s-stack>
         </s-stack>
       </s-section>
+
+      {prepared.length > 0 && (
+        <s-section heading={`Ready to send (${prepared.length})`}>
+          <s-stack direction="block" gap="small-300">
+            <s-text color="subdued">Open each one in your email app, or copy it and paste it into any mail or chat.</s-text>
+            {prepared.map((p) => (
+              <div className="rv-row" key={p.email}>
+                <div className="rv-who">
+                  <b>{p.name ? `${p.name} · ` : ""}{p.email}</b>
+                  <span>{p.subject}</span>
+                </div>
+                <s-stack direction="inline" gap="small-300">
+                  <a
+                    className="rv-open"
+                    target="_top"
+                    href={`mailto:${p.email}?subject=${encodeURIComponent(p.subject)}&body=${encodeURIComponent(p.text)}`}
+                  >
+                    Open in email app
+                  </a>
+                  <s-button
+                    variant="tertiary"
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(`Subject: ${p.subject}\n\n${p.text}`);
+                        shopify.toast.show("Copied");
+                      } catch {
+                        shopify.toast.show("Couldn't copy — use Open in email app", { isError: true });
+                      }
+                    }}
+                  >
+                    Copy
+                  </s-button>
+                </s-stack>
+              </div>
+            ))}
+          </s-stack>
+        </s-section>
+      )}
 
       <s-section heading="Your email">
         <s-stack direction="block" gap="base">
