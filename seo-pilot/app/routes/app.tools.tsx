@@ -24,10 +24,10 @@ const ICONS: Record<string, string> = {
 };
 
 const TOOLS: Array<{ key: string; title: string; body: string; href: string; min: PaidTier | null }> = [
-  { key: "autopilot", title: "Autopilot", body: "Checks every new product the moment you add it. Exclusive and Agency can also write its SEO text automatically.", href: "/app/autopilot", min: "premium" },
+  { key: "autopilot", title: "Autopilot", body: "Checks each new product you add and shows what is missing. You decide what gets written.", href: "/app/autopilot", min: "premium" },
   { key: "content", title: "Content check", body: "Shows which pages need more or clearer text so Google understands them.", href: "/app/content", min: "premium" },
-  { key: "links", title: "Internal links", body: "Finds pages that mention another page without linking to it, and adds the link in one click.", href: "/app/internal-links", min: "basic" },
-  { key: "redirects", title: "Redirects", body: "Fix broken links (404s) by sending the old address to the right page. Exclusive and Agency can import many at once.", href: "/app/redirects", min: null },
+  { key: "links", title: "Internal links", body: "Finds places where one page could link to another. One click adds the link.", href: "/app/internal-links", min: "basic" },
+  { key: "redirects", title: "Redirects", body: "Old address stopped working? Send visitors to the right page instead.", href: "/app/redirects", min: null },
   { key: "images", title: "Images", body: "Shrink oversized images so your pages load faster.", href: "/app/images", min: "basic" },
   { key: "reviews", title: "Review requests", body: "Email customers a short rating request, see who answers, and point happy ones to your public review page.", href: "/app/reviews", min: "premium" },
   { key: "report", title: "SEO report", body: "Your score and open issues on one page, with a CSV download and print to PDF. Agency adds your business name.", href: "/app/report", min: "exclusive" },
