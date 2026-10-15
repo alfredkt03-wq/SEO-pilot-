@@ -352,6 +352,7 @@ export default function Dashboard() {
       <s-button slot="secondary-actions" href="/app/manual">
         How to use
       </s-button>
+      <s-button slot="secondary-actions" href="/app/tools">All tools</s-button>
 
       {scanIsStale && (
         <s-banner heading={`Your last scan was ${daysSinceScan} days ago`} tone="info">
