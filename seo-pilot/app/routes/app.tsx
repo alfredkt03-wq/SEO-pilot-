@@ -23,6 +23,7 @@ export default function App() {
         <s-link href="/app/editor">Editor</s-link>
         <s-link href="/app/bulk">Bulk edit</s-link>
         <s-link href="/app/tools">Tools</s-link>
+        <s-link href="/app/reviews">Reviews</s-link>
         <s-link href="/app/manual">Manual</s-link>
         <s-link href="/app/billing">Plan</s-link>
         <s-link href={`mailto:${SUPPORT_EMAIL}`}>Support</s-link>
