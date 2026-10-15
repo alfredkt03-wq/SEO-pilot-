@@ -338,7 +338,7 @@ export default function Dashboard() {
   const scanUsagePercent = scan && scanCapacity > 0 ? Math.min(100, Math.round((scannedCount / scanCapacity) * 100)) : 0;
 
   return (
-    <s-page heading="Metaglow SEO">
+    <s-page heading="Metaglow SEO" inlineSize="large">
       {hasActivePayment ? (
         <s-button slot="primary-action" onClick={runScan} {...(scanning ? { loading: true } : {})}>
           {scan ? "Re-scan store" : "Run first scan"}
@@ -478,68 +478,78 @@ export default function Dashboard() {
           <span>Scan, review what Google cannot see, then fix it with one click or write the text yourself.</span>
         </div>
       </div>
-      <s-section heading="All tools">
-        <s-grid gridTemplateColumns="repeat(auto-fit, minmax(190px, 1fr))" gap="base">
-          <s-clickable href="/app/fixes" border="base" borderRadius="base" padding="base">
-            <s-stack gap="small-300">
-              <s-text type="strong">Fixes</s-text>
+            <s-section heading="All tools">
+        <s-grid gridTemplateColumns="repeat(auto-fit, minmax(240px, 1fr))" gap="base">
+          <s-box padding="base" borderWidth="base" borderRadius="base">
+            <s-stack gap="small">
+              <s-heading>Fixes</s-heading>
               <s-text color="subdued">Fix what Google cannot see</s-text>
+              <s-button href="/app/fixes">Open</s-button>
             </s-stack>
-          </s-clickable>
-          <s-clickable href="/app/editor" border="base" borderRadius="base" padding="base">
-            <s-stack gap="small-300">
-              <s-text type="strong">Editor</s-text>
+          </s-box>
+          <s-box padding="base" borderWidth="base" borderRadius="base">
+            <s-stack gap="small">
+              <s-heading>Editor</s-heading>
               <s-text color="subdued">Edit titles and descriptions</s-text>
+              <s-button href="/app/editor">Open</s-button>
             </s-stack>
-          </s-clickable>
-          <s-clickable href="/app/bulk" border="base" borderRadius="base" padding="base">
-            <s-stack gap="small-300">
-              <s-text type="strong">Bulk editor</s-text>
+          </s-box>
+          <s-box padding="base" borderWidth="base" borderRadius="base">
+            <s-stack gap="small">
+              <s-heading>Bulk editor</s-heading>
               <s-text color="subdued">Edit many products at once</s-text>
+              <s-button href="/app/bulk">Open</s-button>
             </s-stack>
-          </s-clickable>
-          <s-clickable href="/app/autopilot" border="base" borderRadius="base" padding="base">
-            <s-stack gap="small-300">
-              <s-text type="strong">Autopilot</s-text>
+          </s-box>
+          <s-box padding="base" borderWidth="base" borderRadius="base">
+            <s-stack gap="small">
+              <s-heading>Autopilot</s-heading>
               <s-text color="subdued">Check each new product</s-text>
+              <s-button href="/app/autopilot">Open</s-button>
             </s-stack>
-          </s-clickable>
-          <s-clickable href="/app/content" border="base" borderRadius="base" padding="base">
-            <s-stack gap="small-300">
-              <s-text type="strong">Content check</s-text>
+          </s-box>
+          <s-box padding="base" borderWidth="base" borderRadius="base">
+            <s-stack gap="small">
+              <s-heading>Content check</s-heading>
               <s-text color="subdued">Find pages with too little text</s-text>
+              <s-button href="/app/content">Open</s-button>
             </s-stack>
-          </s-clickable>
-          <s-clickable href="/app/internal-links" border="base" borderRadius="base" padding="base">
-            <s-stack gap="small-300">
-              <s-text type="strong">Internal links</s-text>
+          </s-box>
+          <s-box padding="base" borderWidth="base" borderRadius="base">
+            <s-stack gap="small">
+              <s-heading>Internal links</s-heading>
               <s-text color="subdued">Link your pages together</s-text>
+              <s-button href="/app/internal-links">Open</s-button>
             </s-stack>
-          </s-clickable>
-          <s-clickable href="/app/redirects" border="base" borderRadius="base" padding="base">
-            <s-stack gap="small-300">
-              <s-text type="strong">Redirects</s-text>
+          </s-box>
+          <s-box padding="base" borderWidth="base" borderRadius="base">
+            <s-stack gap="small">
+              <s-heading>Redirects</s-heading>
               <s-text color="subdued">Fix broken links</s-text>
+              <s-button href="/app/redirects">Open</s-button>
             </s-stack>
-          </s-clickable>
-          <s-clickable href="/app/images" border="base" borderRadius="base" padding="base">
-            <s-stack gap="small-300">
-              <s-text type="strong">Images</s-text>
+          </s-box>
+          <s-box padding="base" borderWidth="base" borderRadius="base">
+            <s-stack gap="small">
+              <s-heading>Images</s-heading>
               <s-text color="subdued">Shrink big images</s-text>
+              <s-button href="/app/images">Open</s-button>
             </s-stack>
-          </s-clickable>
-          <s-clickable href="/app/reviews" border="base" borderRadius="base" padding="base">
-            <s-stack gap="small-300">
-              <s-text type="strong">Reviews</s-text>
+          </s-box>
+          <s-box padding="base" borderWidth="base" borderRadius="base">
+            <s-stack gap="small">
+              <s-heading>Reviews</s-heading>
               <s-text color="subdued">Ask customers for a review</s-text>
+              <s-button href="/app/reviews">Open</s-button>
             </s-stack>
-          </s-clickable>
-          <s-clickable href="/app/billing" border="base" borderRadius="base" padding="base">
-            <s-stack gap="small-300">
-              <s-text type="strong">Plans</s-text>
+          </s-box>
+          <s-box padding="base" borderWidth="base" borderRadius="base">
+            <s-stack gap="small">
+              <s-heading>Plans</s-heading>
               <s-text color="subdued">Your plan and billing</s-text>
+              <s-button href="/app/billing">Open</s-button>
             </s-stack>
-          </s-clickable>
+          </s-box>
         </s-grid>
       </s-section>
       <s-section heading="Store SEO score">
@@ -636,7 +646,7 @@ export default function Dashboard() {
           </s-banner>
         )}
 
-        {scan && history.length >= 2 && (
+        {false && (
           <div className="sp-trend">
             <div className="sp-trend-head">
               <b>Score over time</b>
@@ -673,7 +683,7 @@ export default function Dashboard() {
               <div className="sp-tile"><b>{totalOpen}</b><span>open issues</span></div>
               <div className="sp-tile"><b>{fixableCount}</b><span>can be auto-fixed</span></div>
               <div className="sp-tile"><b>{impact.totalFixesApplied}</b><span>fixes applied so far</span></div>
-              <div className="sp-tile"><b>~{impact.minutesSaved}<small> min</small></b><span>editing time saved</span></div>
+            
             </div>
             <div className="sp-cap">
               <span>
@@ -705,24 +715,7 @@ export default function Dashboard() {
         <p className="sp-steps-foot">New to SEO? <s-link href="/app/manual">Read the short guide</s-link></p>
       </s-section>
 
-      {hasActivePayment && (
-        <s-section heading="More tools">
-          <ul className="sp-tool-list">
-            {MORE_TOOLS.map((t) => {
-              const locked = TIER_RANK[tier] < TIER_RANK[t.min];
-              return (
-                <li key={t.href}>
-                  <div className="sp-tool-text">
-                    <b>{t.title}{locked && <span className="sp-tool-plan"> · {TIER_LABEL[t.min]} plan</span>}</b>
-                    <span>{t.body}</span>
-                  </div>
-                  <s-link href={locked ? "/app/billing" : t.href}>{locked ? "See plans" : t.cta}</s-link>
-                </li>
-              );
-            })}
-          </ul>
-        </s-section>
-      )}
+      
 
       <s-section heading="Mobile speed">
         <s-stack direction="block" gap="base">
@@ -803,12 +796,7 @@ export default function Dashboard() {
               {impact.totalRedirectsCreated === 1 ? "" : "s"} caught with a redirect — each one is a
               visitor (or Google) who didn't hit a dead page
             </s-paragraph>
-            <s-paragraph>
-              <s-text color="subdued">
-                ≈ {impact.minutesSaved} minute{impact.minutesSaved === 1 ? "" : "s"} of manual editing
-                saved, estimated at ~2 min per fix and ~3 min per redirect
-              </s-text>
-            </s-paragraph>
+            
           </s-stack>
         )}
       </s-section>
