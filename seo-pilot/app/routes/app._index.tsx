@@ -479,17 +479,17 @@ export default function Dashboard() {
         </div>
       </div>
       <s-section heading="All tools">
-        <s-stack direction="inline" gap="small">
-          <s-button href="/app/fixes">Fixes</s-button>
-          <s-button href="/app/editor">Editor</s-button>
-          <s-button href="/app/bulk">Bulk editor</s-button>
-          <s-button href="/app/autopilot">Autopilot</s-button>
-          <s-button href="/app/content">Content check</s-button>
-          <s-button href="/app/internal-links">Internal links</s-button>
-          <s-button href="/app/redirects">Redirects</s-button>
-          <s-button href="/app/images">Images</s-button>
-          <s-button href="/app/reviews">Reviews</s-button>
-          <s-button href="/app/billing">Plans</s-button>
+        <s-stack direction="inline" gap="base">
+          <s-button size="large" href="/app/fixes">Fixes</s-button>
+          <s-button size="large" href="/app/editor">Editor</s-button>
+          <s-button size="large" href="/app/bulk">Bulk editor</s-button>
+          <s-button size="large" href="/app/autopilot">Autopilot</s-button>
+          <s-button size="large" href="/app/content">Content check</s-button>
+          <s-button size="large" href="/app/internal-links">Internal links</s-button>
+          <s-button size="large" href="/app/redirects">Redirects</s-button>
+          <s-button size="large" href="/app/images">Images</s-button>
+          <s-button size="large" href="/app/reviews">Reviews</s-button>
+          <s-button size="large" href="/app/billing">Plans</s-button>
         </s-stack>
       </s-section>
       <s-section heading="Store SEO score">
