@@ -85,7 +85,7 @@ export default function Images() {
 
   return (
     <s-page heading="Image optimization">
-      <PageStrip icon="image" title="Add missing image descriptions" text="Alt text helps Google and screen readers understand your pictures." />
+      <PageStrip icon="image" title="Shrink oversized images" text="Smaller images make your pages load faster." />
       <s-link slot="breadcrumb-actions" href="/app/tools">Tools</s-link>
       {!hasActivePayment && (
         <s-banner heading="Subscription required" tone="warning">
