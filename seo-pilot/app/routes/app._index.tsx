@@ -737,41 +737,7 @@ export default function Dashboard() {
 
       
 
-      <s-section heading="Mobile speed">
-        <s-stack direction="block" gap="base">
-          {speed && speed.score != null ? (
-            <s-stack direction="inline" gap="large" alignItems="center">
-              <s-box padding="base" borderWidth="base" borderRadius="base" background="subdued">
-                <s-stack direction="block" gap="small" alignItems="center">
-                  <s-heading>{speed.score}/100</s-heading>
-                  <s-badge tone={speed.score >= 90 ? "success" : speed.score >= 50 ? "warning" : "critical"}>
-                    {speed.score >= 90 ? "Fast" : speed.score >= 50 ? "Needs work" : "Slow"}
-                  </s-badge>
-                </s-stack>
-              </s-box>
-              <s-stack direction="block" gap="small-300">
-                <s-text>Main content visible after: {speed.lcp ?? "–"}</s-text>
-                <s-text>Page blocked for: {speed.tbt ?? "–"}</s-text>
-                <s-text>Layout shift: {speed.cls ?? "–"}</s-text>
-                <s-text color="subdued">
-                  Tested {new Date(speed.checkedAt).toLocaleString()} with Google PageSpeed, as a
-                  phone on a mobile connection — most Indian shoppers browse on phones.
-                </s-text>
-              </s-stack>
-            </s-stack>
-          ) : (
-            <s-paragraph>
-              See how fast your homepage loads on a phone, using Google's own PageSpeed test. Takes
-              up to a minute.
-            </s-paragraph>
-          )}
-          <s-stack direction="inline" gap="small">
-            <s-button onClick={runSpeed} {...(speedTesting ? { loading: true } : {})}>
-              {speed ? "Test again" : "Test mobile speed"}
-            </s-button>
-          </s-stack>
-        </s-stack>
-      </s-section>
+    
 
       <s-section slot="aside" heading="AI writing">
         {!ai.configured ? (
