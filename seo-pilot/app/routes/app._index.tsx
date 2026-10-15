@@ -478,78 +478,98 @@ export default function Dashboard() {
           <span>Scan, review what Google cannot see, then fix it with one click or write the text yourself.</span>
         </div>
       </div>
-            <s-section heading="All tools">
-        <s-grid gridTemplateColumns="repeat(auto-fit, minmax(240px, 1fr))" gap="base">
-          <s-box padding="base" borderWidth="base" borderRadius="base">
-            <s-stack gap="small">
-              <s-heading>Fixes</s-heading>
+                  <s-section heading="All tools">
+        <s-grid gridTemplateColumns="repeat(auto-fit, minmax(210px, 1fr))" gap="small">
+          <s-clickable href="/app/fixes" background="subdued" border="base" borderRadius="large" padding="small-100">
+            <s-stack gap="small-500">
+              <s-stack direction="inline" justifyContent="space-between" alignItems="center">
+                <s-heading>Fixes</s-heading>
+                <s-text color="subdued">Open →</s-text>
+              </s-stack>
               <s-text color="subdued">Fix what Google cannot see</s-text>
-              <s-button href="/app/fixes">Open</s-button>
             </s-stack>
-          </s-box>
-          <s-box padding="base" borderWidth="base" borderRadius="base">
-            <s-stack gap="small">
-              <s-heading>Editor</s-heading>
+          </s-clickable>
+          <s-clickable href="/app/editor" background="subdued" border="base" borderRadius="large" padding="small-100">
+            <s-stack gap="small-500">
+              <s-stack direction="inline" justifyContent="space-between" alignItems="center">
+                <s-heading>Editor</s-heading>
+                <s-text color="subdued">Open →</s-text>
+              </s-stack>
               <s-text color="subdued">Edit titles and descriptions</s-text>
-              <s-button href="/app/editor">Open</s-button>
             </s-stack>
-          </s-box>
-          <s-box padding="base" borderWidth="base" borderRadius="base">
-            <s-stack gap="small">
-              <s-heading>Bulk editor</s-heading>
+          </s-clickable>
+          <s-clickable href="/app/bulk" background="subdued" border="base" borderRadius="large" padding="small-100">
+            <s-stack gap="small-500">
+              <s-stack direction="inline" justifyContent="space-between" alignItems="center">
+                <s-heading>Bulk editor</s-heading>
+                <s-text color="subdued">Open →</s-text>
+              </s-stack>
               <s-text color="subdued">Edit many products at once</s-text>
-              <s-button href="/app/bulk">Open</s-button>
             </s-stack>
-          </s-box>
-          <s-box padding="base" borderWidth="base" borderRadius="base">
-            <s-stack gap="small">
-              <s-heading>Autopilot</s-heading>
+          </s-clickable>
+          <s-clickable href="/app/autopilot" background="subdued" border="base" borderRadius="large" padding="small-100">
+            <s-stack gap="small-500">
+              <s-stack direction="inline" justifyContent="space-between" alignItems="center">
+                <s-heading>Autopilot</s-heading>
+                <s-text color="subdued">Open →</s-text>
+              </s-stack>
               <s-text color="subdued">Check each new product</s-text>
-              <s-button href="/app/autopilot">Open</s-button>
             </s-stack>
-          </s-box>
-          <s-box padding="base" borderWidth="base" borderRadius="base">
-            <s-stack gap="small">
-              <s-heading>Content check</s-heading>
+          </s-clickable>
+          <s-clickable href="/app/content" background="subdued" border="base" borderRadius="large" padding="small-100">
+            <s-stack gap="small-500">
+              <s-stack direction="inline" justifyContent="space-between" alignItems="center">
+                <s-heading>Content check</s-heading>
+                <s-text color="subdued">Open →</s-text>
+              </s-stack>
               <s-text color="subdued">Find pages with too little text</s-text>
-              <s-button href="/app/content">Open</s-button>
             </s-stack>
-          </s-box>
-          <s-box padding="base" borderWidth="base" borderRadius="base">
-            <s-stack gap="small">
-              <s-heading>Internal links</s-heading>
+          </s-clickable>
+          <s-clickable href="/app/internal-links" background="subdued" border="base" borderRadius="large" padding="small-100">
+            <s-stack gap="small-500">
+              <s-stack direction="inline" justifyContent="space-between" alignItems="center">
+                <s-heading>Internal links</s-heading>
+                <s-text color="subdued">Open →</s-text>
+              </s-stack>
               <s-text color="subdued">Link your pages together</s-text>
-              <s-button href="/app/internal-links">Open</s-button>
             </s-stack>
-          </s-box>
-          <s-box padding="base" borderWidth="base" borderRadius="base">
-            <s-stack gap="small">
-              <s-heading>Redirects</s-heading>
+          </s-clickable>
+          <s-clickable href="/app/redirects" background="subdued" border="base" borderRadius="large" padding="small-100">
+            <s-stack gap="small-500">
+              <s-stack direction="inline" justifyContent="space-between" alignItems="center">
+                <s-heading>Redirects</s-heading>
+                <s-text color="subdued">Open →</s-text>
+              </s-stack>
               <s-text color="subdued">Fix broken links</s-text>
-              <s-button href="/app/redirects">Open</s-button>
             </s-stack>
-          </s-box>
-          <s-box padding="base" borderWidth="base" borderRadius="base">
-            <s-stack gap="small">
-              <s-heading>Images</s-heading>
+          </s-clickable>
+          <s-clickable href="/app/images" background="subdued" border="base" borderRadius="large" padding="small-100">
+            <s-stack gap="small-500">
+              <s-stack direction="inline" justifyContent="space-between" alignItems="center">
+                <s-heading>Images</s-heading>
+                <s-text color="subdued">Open →</s-text>
+              </s-stack>
               <s-text color="subdued">Shrink big images</s-text>
-              <s-button href="/app/images">Open</s-button>
             </s-stack>
-          </s-box>
-          <s-box padding="base" borderWidth="base" borderRadius="base">
-            <s-stack gap="small">
-              <s-heading>Reviews</s-heading>
+          </s-clickable>
+          <s-clickable href="/app/reviews" background="subdued" border="base" borderRadius="large" padding="small-100">
+            <s-stack gap="small-500">
+              <s-stack direction="inline" justifyContent="space-between" alignItems="center">
+                <s-heading>Reviews</s-heading>
+                <s-text color="subdued">Open →</s-text>
+              </s-stack>
               <s-text color="subdued">Ask customers for a review</s-text>
-              <s-button href="/app/reviews">Open</s-button>
             </s-stack>
-          </s-box>
-          <s-box padding="base" borderWidth="base" borderRadius="base">
-            <s-stack gap="small">
-              <s-heading>Plans</s-heading>
+          </s-clickable>
+          <s-clickable href="/app/billing" background="subdued" border="base" borderRadius="large" padding="small-100">
+            <s-stack gap="small-500">
+              <s-stack direction="inline" justifyContent="space-between" alignItems="center">
+                <s-heading>Plans</s-heading>
+                <s-text color="subdued">Open →</s-text>
+              </s-stack>
               <s-text color="subdued">Your plan and billing</s-text>
-              <s-button href="/app/billing">Open</s-button>
             </s-stack>
-          </s-box>
+          </s-clickable>
         </s-grid>
       </s-section>
       <s-section heading="Store SEO score">
