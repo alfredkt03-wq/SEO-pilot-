@@ -203,6 +203,15 @@ const DASH_CSS = `
 .sp-tile{background:#fff;border:1px solid #e1e3e5;border-radius:8px}
 .sp-more-card:hover{border-color:#b5b9bd}
 .sp-cap-track{background:#e8eaec}
+.sp-hero{padding:28px 32px;border-radius:16px;border:1px solid #d7e3f7;background:linear-gradient(135deg,#eef4ff 0%,#ffffff 65%);box-shadow:0 1px 2px rgba(16,24,40,.05),0 8px 24px -12px rgba(37,99,235,.25);gap:40px}
+.sp-ring{width:168px;height:168px;filter:drop-shadow(0 6px 12px rgba(16,24,40,.12))}
+.sp-ring svg{width:168px;height:168px}
+.sp-ring-center b{font-size:56px}
+.sp-grade-label{font-size:24px;letter-spacing:-.01em}
+.sp-grade{height:36px;min-width:36px;font-size:17px;border-radius:10px}
+.sp-tiles{gap:14px;margin-top:18px}
+.sp-tile{border-radius:12px;border-left:4px solid #2563eb;padding:16px 18px}
+.sp-tile b{font-size:32px}
 .sp-empty{border:1px dashed #c9cccf;background:#fafbfb}
 .sp-empty-icon{background:#0f6b57;box-shadow:none}
 .sp-more-card{border:1px solid #e1e3e5;border-radius:8px;background:#fff}
