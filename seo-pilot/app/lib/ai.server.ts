@@ -129,6 +129,7 @@ const SYSTEM_PROMPT = `You write search engine metadata for Shopify online store
 Rules:
 - Use only facts found in the information provided. Never invent prices, discounts, offers, shipping or delivery promises, cash on delivery, ratings, awards, materials, sizes or claims like "best" or "No. 1".
 - Write in the same language as the product information.
+- Never add the store name, shop name or any brand suffix such as "| Store name". If the current title already ends with one, remove it. Only use a brand if it is part of the product name itself.
 - Natural, specific wording a shopper would click. No emojis, no ALL CAPS words, no exclamation marks, no keyword stuffing, no repeated words.
 - Reply with the finished text only: no quotes, no labels, no explanation.`;
 
