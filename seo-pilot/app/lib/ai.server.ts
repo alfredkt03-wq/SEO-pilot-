@@ -132,6 +132,16 @@ Rules:
 - Never add the store name, shop name or any brand suffix such as "| Store name". If the current title already ends with one, remove it. Only use a brand if it is part of the product name itself.
 - Natural, specific wording a shopper would click. No emojis, no ALL CAPS words, no exclamation marks, no keyword stuffing, no repeated words.
 - Reply with the finished text only: no quotes, no labels, no explanation.`;
+// Strips a trailing store/brand mark such as " | Store" or " by Store" from existing text.
+function dropBrand(text: string, vendor?: string | null): string {
+  let t = text.trim();
+  const names = [vendor, "SEO helper"].filter((n): n is string => !!n && n.trim().length > 1);
+  for (const n of names) {
+    const esc = n.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    t = t.replace(new RegExp(`\\s*(?:[|\\-–—:]|\\bby\\b)\\s*${esc}\\s*$`, "i"), "").trim();
+  }
+  return t;
+}
 
 function describeResource(ctx: ResourceContext): string {
   const lines = [
@@ -141,6 +151,8 @@ function describeResource(ctx: ResourceContext): string {
   if (ctx.productType) lines.push(`Category: ${ctx.productType}`);
   const body = stripHtml(ctx.body).slice(0, 1500);
   if (body) lines.push(`Description: ${body}`);
+  if (ctx.currentSeoTitle) lines.push(`Current SEO title: ${dropBrand(ctx.currentSeoTitle, ctx.vendor)}`);
+  if (ctx.currentSeoDescription) lines.push(`Current meta description: ${dropBrand(ctx.currentSeoDescription, ctx.vendor)}`);
   return lines.join("\n");
 }
 
