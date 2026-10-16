@@ -66,7 +66,7 @@ const RANK: Record<PaidTier, number> = { basic: 1, premium: 2, exclusive: 3, age
 // merchant gets, so nobody has to work out what "Everything in Basic" means.
 // `from` is the lowest plan that includes the feature.
 const FEATURES_BY_TIER: Array<{ from: PaidTier; text: string }> = [
-  { from: "basic", text: "Homepage check and mobile speed test" },
+  { from: "basic", text: "Homepage check" },
   { from: "basic", text: "One-click fixes and “Fix everything”" },
   { from: "basic", text: "SEO editor with live Google preview" },
   { from: "basic", text: "Unique titles for duplicate pages, written by AI" },
