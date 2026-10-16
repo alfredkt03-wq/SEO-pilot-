@@ -139,7 +139,6 @@ export function suggestMetaDescription(
   const parts: string[] = [];
   parts.push(india ? `Buy ${title.trim()}` : `Shop ${title.trim()}`);
   if (opts.productType) parts.push(`— ${opts.productType}`);
-  if (opts.vendor) parts.push(`by ${opts.vendor}`);
   let sentence = parts.join(" ") + (india ? " online in India." : ".");
   if (base) {
     sentence += ` ${base}`;
