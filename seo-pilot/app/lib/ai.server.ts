@@ -141,8 +141,6 @@ function describeResource(ctx: ResourceContext): string {
   if (ctx.productType) lines.push(`Category: ${ctx.productType}`);
   const body = stripHtml(ctx.body).slice(0, 1500);
   if (body) lines.push(`Description: ${body}`);
-  if (ctx.currentSeoTitle) lines.push(`Current SEO title: ${ctx.currentSeoTitle}`);
-  if (ctx.currentSeoDescription) lines.push(`Current meta description: ${ctx.currentSeoDescription}`);
   return lines.join("\n");
 }
 
