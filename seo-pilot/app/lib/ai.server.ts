@@ -142,6 +142,16 @@ function dropBrand(text: string, vendor?: string | null): string {
   }
   return t;
 }
+// Removes the store/vendor name (e.g. "Shop Tee by SEO helper.") from product text before the AI sees it.
+function scrubBrand(text: string, vendor?: string | null): string {
+  let t = text;
+  const names = [vendor, "SEO helper"].filter((n): n is string => !!n && n.trim().length > 1);
+  for (const n of names) {
+    const esc = n.trim().replace(/[^\w\s]/g, "\\$&");
+    t = t.replace(new RegExp("\\s*\\b(?:by|from|at)\\s+" + esc, "gi"), "").replace(new RegExp(esc, "gi"), "");
+  }
+  return t.replace(/\s+([.,])/g, "$1").replace(/\s{2,}/g, " ").trim();
+}
 
 function describeResource(ctx: ResourceContext): string {
   const lines = [
@@ -149,7 +159,7 @@ function describeResource(ctx: ResourceContext): string {
     `Name: ${ctx.title}`,
   ];
   if (ctx.productType) lines.push(`Category: ${ctx.productType}`);
-  const body = stripHtml(ctx.body).slice(0, 1500);
+  const body = scrubBrand(stripHtml(ctx.body), ctx.vendor).slice(0, 1500);
   if (body) lines.push(`Description: ${body}`);
   if (ctx.currentSeoTitle) lines.push(`Current SEO title: ${dropBrand(ctx.currentSeoTitle, ctx.vendor)}`);
   if (ctx.currentSeoDescription) lines.push(`Current meta description: ${dropBrand(ctx.currentSeoDescription, ctx.vendor)}`);
