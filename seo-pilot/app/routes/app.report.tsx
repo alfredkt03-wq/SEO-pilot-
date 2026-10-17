@@ -127,7 +127,7 @@ export default function Report() {
               )}
               <s-box><s-text type="strong">{issues.length}</s-text><br /><s-text color="subdued">open issues</s-text></s-box>
               <s-box><s-text type="strong">{data.fixes}</s-text><br /><s-text color="subdued">fixes applied</s-text></s-box>
-              s-stack>
+              </s-stack>
             <s-paragraph>Scanned {new Date(scan.scannedAt).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" })}.</s-paragraph>
           </s-section>
 
