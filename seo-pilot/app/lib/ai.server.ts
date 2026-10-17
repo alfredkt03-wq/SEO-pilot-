@@ -189,7 +189,7 @@ export async function aiWriteMetaDescription(ctx: ResourceContext): Promise<stri
 Write the meta description (the text under the headline in Google results). 130–155 characters, never more than ${META_DESC_MAX}. Say what it is and give one concrete reason to click, based only on the information above.${indiaHint(ctx)}`,
     200,
   );
-  const first = finish(text, META_DESC_MAX);
+  const first = finish(text, META_DESC_MAX, true);
   return first.length >= 120 ? first : (await expandShort(ctx, first, "meta description", 135, 155, META_DESC_MAX, 200)) ?? first;
 }
 
@@ -449,7 +449,7 @@ async function callClaude(content: string | unknown[], maxTokens: number): Promi
 
 // Cleans model output into a single line of the right length. Exported for
 // tests.
-export function finish(raw: string, maxLen: number): string {
+export function finish(raw: string, maxLen: number, sentence = false): string {
   let text = raw.trim().split(/\r?\n/).find((l) => l.trim()) ?? "";
   text = text
     .replace(/^(seo title|title|meta description|description|alt text)\s*:\s*/i, "")
@@ -457,7 +457,7 @@ export function finish(raw: string, maxLen: number): string {
     .replace(/\s+/g, " ")
     .trim();
   if (!text) throw new Error("AI returned an empty answer");
-  return truncateAtWord(text, maxLen);
+  return truncateAtWord(text, maxLen, sentence);
 }
 
 async function fetchImageForAi(imageUrl: string): Promise<{ base64: string; mediaType: string }> {
