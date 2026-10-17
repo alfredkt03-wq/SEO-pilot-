@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs } from "react-router";
 import { Form, Link, useFetcher, useLoaderData } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
@@ -7,6 +7,15 @@ import { authenticate } from "../shopify.server";
 import db from "../db.server";
 import { setResourceSeo } from "../lib/apply-fix.server";
 import { recordFixesApplied } from "../lib/impact.server";
+import { checkPlan, getShopMarket, isIndianStore, requirePlan } from "../lib/billing.server";
+import {
+  aiConfigured,
+  aiWriteMetaDescription,
+  aiWriteSeoTitle,
+  getAiAllowance,
+  loadResourceContext,
+  recordAiCredits,
+} from "../lib/ai.server";
 import { isEditorType, searchEditorResources, type EditorResourceType } from "../lib/editor";
 import { META_DESC_MAX, SEO_TITLE_MAX, itemSeoScore } from "../lib/suggestions";
 import { PageStrip } from "../components/PageStrip";
@@ -36,24 +45,49 @@ const SEO_ISSUE_TYPES = [
 ];
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { admin } = await authenticate.admin(request);
+  const { admin, session, billing } = await authenticate.admin(request);
   const url = new URL(request.url);
   const type: EditorResourceType = isEditorType(url.searchParams.get("type"))
     ? (url.searchParams.get("type") as EditorResourceType)
     : "product";
   const q = url.searchParams.get("q")?.trim() ?? "";
   const items = await searchEditorResources(admin, type, q);
-  return { type, q, items };
+  const { hasActivePayment, tier } = await checkPlan(billing);
+  const allowance = await getAiAllowance(session.shop, tier);
+  return { type, q, items, hasActivePayment, ai: { ...allowance, configured: aiConfigured() } };
 };
 
 // Writing text by hand is free on every plan (same as the single-item editor).
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const { admin, session } = await authenticate.admin(request);
+  const { admin, session, billing } = await authenticate.admin(request);
   const form = await request.formData();
   const type = form.get("type");
   if (!isEditorType(typeof type === "string" ? type : null)) {
-    return { ok: false as const, saved: 0, errors: ["Unknown item type."] };
+    return { mode: "save" as const, ok: false as const, saved: 0, errors: ["Unknown item type."] };
   }
+
+  // One row: write a title and description with AI (2 credits). Nothing is saved.
+  if (form.get("intent") === "ai") {
+    const gid = String(form.get("id") ?? "");
+    await requirePlan(admin, billing, session.shop);
+    if (!aiConfigured()) return { mode: "ai" as const, ok: false as const, error: "AI writing isn't set up yet." };
+    const { tier } = await checkPlan(billing);
+    const allowance = await getAiAllowance(session.shop, tier);
+    if (allowance.remaining < 2) {
+      return { mode: "ai" as const, ok: false as const, error: "Not enough AI writes left this month (needs 2)." };
+    }
+    try {
+      const market = await getShopMarket(admin, session.shop);
+      const ctx = await loadResourceContext(admin, gid, isIndianStore(market));
+      if (!ctx) return { mode: "ai" as const, ok: false as const, error: "Couldn't load this item." };
+      const [aiTitle, aiDescription] = await Promise.all([aiWriteSeoTitle(ctx), aiWriteMetaDescription(ctx)]);
+      await recordAiCredits(session.shop, 2);
+      return { mode: "ai" as const, ok: true as const, title: aiTitle, description: aiDescription };
+    } catch (err: any) {
+      return { mode: "ai" as const, ok: false as const, error: err?.message ?? "AI writing failed" };
+    }
+  }
+
   const resourceType = RESOURCE_TYPE_UPPER[type as EditorResourceType];
   const ids = form.getAll("id").map(String);
 
@@ -81,35 +115,109 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   }
 
   if (saved > 0) await recordFixesApplied(session.shop, saved);
-  return { ok: errors.length === 0, saved, errors };
+  return { mode: "save" as const, ok: errors.length === 0, saved, errors };
 };
 
 const BULK_CSS = `
 .bk-hint{font-size:12px;color:#5b6b85}
 `;
 
+
+type BulkItem = { id: string; title: string; seoTitle: string; seoDescription: string };
+
+function BulkRow({
+  item,
+  type,
+  canAi,
+  aiHint,
+}: {
+  item: BulkItem;
+  type: string;
+  canAi: boolean;
+  aiHint: string;
+}) {
+  const aiFetcher = useFetcher<typeof action>();
+  const shopify = useAppBridge();
+  const titleRef = useRef<any>(null);
+  const descRef = useRef<any>(null);
+  const working = aiFetcher.state !== "idle";
+
+  useEffect(() => {
+    const d: any = aiFetcher.data;
+    if (!d || d.mode !== "ai" || aiFetcher.state !== "idle") return;
+    if (d.ok) {
+      if (titleRef.current) titleRef.current.value = d.title;
+      if (descRef.current) descRef.current.value = d.description;
+      shopify.toast.show("AI wrote a title and description. Check them, then save.");
+    } else {
+      shopify.toast.show(d.error, { isError: true });
+    }
+  }, [aiFetcher.data, aiFetcher.state, shopify]);
+
+  const r = itemSeoScore(item.seoTitle, item.seoDescription);
+  return (
+    <s-box padding="base" border="base" borderRadius="base">
+      <input type="hidden" name="id" value={item.id} />
+      <input type="hidden" name={"label:" + item.id} value={item.title} />
+      <input type="hidden" name={"origTitle:" + item.id} value={item.seoTitle} />
+      <input type="hidden" name={"origDescription:" + item.id} value={item.seoDescription} />
+      <s-stack direction="block" gap="small-300">
+        <s-text type="strong">{item.title}</s-text>
+        <ScoreChip score={r.score} tone={r.tone} />
+        <s-text-field
+          ref={titleRef}
+          name={"title:" + item.id}
+          label="SEO title"
+          defaultValue={item.seoTitle}
+          placeholder={item.title}
+        />
+        <s-text-area
+          ref={descRef}
+          name={"description:" + item.id}
+          label="Meta description"
+          rows={2}
+          defaultValue={item.seoDescription}
+        />
+        {canAi && (
+          <s-stack direction="inline" gap="base" alignItems="center">
+            <s-button
+              onClick={() => aiFetcher.submit({ intent: "ai", type, id: item.id }, { method: "post" })}
+              {...(working ? { loading: true } : {})}
+            >
+              Write with AI
+            </s-button>
+            <s-text color="subdued">{aiHint}</s-text>
+          </s-stack>
+        )}
+      </s-stack>
+    </s-box>
+  );
+}
+
 export default function BulkEditor() {
-  const { type, q, items } = useLoaderData<typeof loader>();
+  const { type, q, items, hasActivePayment, ai } = useLoaderData<typeof loader>();
   const fetcher = useFetcher<typeof action>();
   const shopify = useAppBridge();
   const noun = TYPES.find((t) => t.value === type)?.label.toLowerCase() ?? type;
   const saving = fetcher.state !== "idle";
 
   useEffect(() => {
-    const d = fetcher.data;
+    const d: any = fetcher.data;
     if (!d || fetcher.state !== "idle") return;
+    if (d.mode !== "save") return;
     if (d.saved > 0) shopify.toast.show(`Saved ${d.saved} ${d.saved === 1 ? "item" : "items"}`);
     else if (d.errors.length === 0) shopify.toast.show("Nothing changed");
   }, [fetcher.data, fetcher.state, shopify]);
 
-  const errors = fetcher.data?.errors ?? [];
+  const saveData: any = fetcher.data?.mode === "save" ? fetcher.data : null;
+  const errors: string[] = saveData?.errors ?? [];
 
   return (
     <s-page heading="Bulk editor" inlineSize="large">
       <PageStrip
         icon="pen"
         title="Edit many titles and descriptions at once"
-        text="Change the text right in the table, then save everything in one click. Free on every plan."
+        text="Change the text right in the table, or write it with AI, then save everything in one click. Writing by hand is free on every plan."
       />
       <style>{BULK_CSS}</style>
 
@@ -172,31 +280,13 @@ export default function BulkEditor() {
                   Only rows you change are saved.
                 </s-text>
                 {items.map((item) => (
-                  <s-box key={item.id} padding="base" border="base" borderRadius="base">
-                    <input type="hidden" name="id" value={item.id} />
-                    <input type="hidden" name={`label:${item.id}`} value={item.title} />
-                    <input type="hidden" name={`origTitle:${item.id}`} value={item.seoTitle} />
-                    <input type="hidden" name={`origDescription:${item.id}`} value={item.seoDescription} />
-                    <s-stack direction="block" gap="small-300">
-                      <s-text type="strong">{item.title}</s-text>
-                      {(() => {
-                        const r = itemSeoScore(item.seoTitle, item.seoDescription);
-                        return <ScoreChip score={r.score} tone={r.tone} />;
-                      })()}
-                      <s-text-field
-                        name={`title:${item.id}`}
-                        label="SEO title"
-                        defaultValue={item.seoTitle}
-                        placeholder={item.title}
-                      />
-                      <s-text-area
-                        name={`description:${item.id}`}
-                        label="Meta description"
-                        rows={2}
-                        defaultValue={item.seoDescription}
-                      />
-                    </s-stack>
-                  </s-box>
+                  <BulkRow
+                    key={item.id}
+                    item={item}
+                    type={type}
+                    canAi={ai.configured && hasActivePayment && ai.remaining >= 2}
+                    aiHint={"Uses 2 of your " + ai.remaining + " AI writes left this month. Nothing is saved until you save."}
+                  />
                 ))}
                 <div>
                   <s-button type="submit" variant="primary" {...(saving ? { loading: true } : {})}>
