@@ -76,11 +76,17 @@ export function wordCount(text: string): number {
   return trimmed.split(/\s+/).length;
 }
 
-export function truncateAtWord(text: string, maxLen: number): string {
+export function truncateAtWord(text: string, maxLen: number, sentence = false): string {
   if (text.length <= maxLen) return text;
-  const cut = text.slice(0, maxLen);
+  const cut = text.slice(0, sentence ? maxLen - 1 : maxLen);
+  if (sentence) {
+    // Descriptions: prefer ending on a full sentence if that keeps most of the text.
+    const end = Math.max(cut.lastIndexOf(". "), cut.lastIndexOf("! "), cut.lastIndexOf("? "));
+    if (end >= maxLen * 0.5) return cut.slice(0, end + 1).trim();
+  }
   const lastSpace = cut.lastIndexOf(" ");
-  return (lastSpace > 0 ? cut.slice(0, lastSpace) : cut).replace(/[\s,;:–-]+$/, "").trim();
+  const out = (lastSpace > 0 ? cut.slice(0, lastSpace) : cut).replace(/[\s,;:–-]+$/, "").trim();
+  return sentence && !/[.!?]$/.test(out) ? out + "." : out;
 }
 
 export function suggestSeoTitle(
@@ -131,9 +137,9 @@ export function suggestMetaDescription(
     // Lead with "Buy X online in India." only when the title is short enough
     // to leave most of the snippet for the store's own words.
     if (india && title.trim().length <= 50) {
-      return truncateAtWord(`Buy ${title.trim()} online in India. ${base}`, META_DESC_MAX);
+      return truncateAtWord(`Buy ${title.trim()} online in India. ${base}`, META_DESC_MAX, true);
     }
-    return truncateAtWord(base, META_DESC_MAX);
+    return truncateAtWord(base, META_DESC_MAX, true);
   }
 
   const parts: string[] = [];
@@ -154,7 +160,7 @@ export function suggestMetaDescription(
     if (sentence.length >= META_DESC_MIN) break;
     if (!sentence.includes(filler.trim())) sentence += filler;
   }
-  return truncateAtWord(sentence, META_DESC_MAX);
+  return truncateAtWord(sentence, META_DESC_MAX, true);
 }
 
 export function suggestAltText(resourceTitle: string, index: number, total: number): string {
