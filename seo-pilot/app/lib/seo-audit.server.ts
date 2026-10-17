@@ -379,7 +379,7 @@ function evaluateResource(item: ResourceRecord, india: boolean): {
       ...base,
       type: "THIN_CONTENT",
       severity: "MEDIUM",
-      message: `Only ${words} word${words === 1 ? "" : "s"} of body content — thin pages tend to rank worse.`,
+      message: `${words === 0 ? "No" : `Only ${words}`} word${words === 1 ? "" : "s"} of body text — thin pages tend to rank worse.`,
     });
   } else {
     checksPassed += 1;
