@@ -70,6 +70,19 @@ function cleanUrl(v: string): string | null {
   }
 }
 
+async function saveTemplate(shop: string, form: FormData) {
+  const subject = String(form.get("subject") ?? "").trim().slice(0, 150);
+  const message = String(form.get("message") ?? "").replace(/\r\n/g, "\n").trim().slice(0, 1500);
+  // Saving the standard text (or nothing) stores null so the default is used.
+  const reviewSubject = subject && subject !== DEFAULT_SUBJECT ? subject : null;
+  const reviewMessage = message && message !== DEFAULT_MESSAGE ? message : null;
+  await db.shopSettings.upsert({
+    where: { shop },
+    update: { reviewSubject, reviewMessage },
+    create: { shop, reviewSubject, reviewMessage },
+  });
+}
+
 export const action = async ({ request }: ActionFunctionArgs) => {
   const { billing, session } = await authenticate.admin(request);
   const { tier } = await checkPlan(billing);
@@ -96,21 +109,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   }
 
   if (intent === "template") {
-    const subject = String(form.get("subject") ?? "").trim().slice(0, 150);
-    const message = String(form.get("message") ?? "").replace(/\r\n/g, "\n").trim().slice(0, 1500);
-    // Saving the standard text (or nothing) stores null so the default is used.
-    await db.shopSettings.upsert({
-      where: { shop: session.shop },
-      update: {
-        reviewSubject: subject && subject !== DEFAULT_SUBJECT ? subject : null,
-        reviewMessage: message && message !== DEFAULT_MESSAGE ? message : null,
-      },
-      create: {
-        shop: session.shop,
-        reviewSubject: subject && subject !== DEFAULT_SUBJECT ? subject : null,
-        reviewMessage: message && message !== DEFAULT_MESSAGE ? message : null,
-      },
-    });
+    await saveTemplate(session.shop, form);
     return { ok: true as const, mode: "template" };
   }
 
@@ -125,6 +124,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     if (valid.length > REVIEW_MAX_PER_SEND) {
       return { ok: false as const, mode: "prepare", error: `Up to ${REVIEW_MAX_PER_SEND} at a time.` };
     }
+    if (form.has("subject") || form.has("message")) await saveTemplate(session.shop, form);
     const prepared = await prepareReviewLinks({ shop: session.shop, recipients: valid, invalid });
     return { ok: true as const, mode: "prepare", prepared };
   }
@@ -147,6 +147,7 @@ export const action = async ({ request }: ActionFunctionArgs) => {
     if (valid.length > REVIEW_MAX_PER_SEND) {
       return { ok: false as const, mode: "send", error: `Send up to ${REVIEW_MAX_PER_SEND} at a time.` };
     }
+    if (form.has("subject") || form.has("message")) await saveTemplate(session.shop, form);
     const summary = await sendReviewRequests({ shop: session.shop, tier, recipients: valid, invalid });
     return { ok: true as const, mode: "send", summary };
   }
@@ -315,6 +316,39 @@ export default function Reviews() {
             onInput={(e: any) => setRecipients(e.target.value)}
             details={`One per line: email, then an optional first name. Up to ${REVIEW_MAX_PER_SEND} at a time.`}
           />
+          <s-text color="subdued">The email your customers get. Change it here — it is saved when you create or send.</s-text>
+
+          <s-stack direction="inline" gap="small-300" alignItems="center">
+            <s-text color="subdued">Start from:</s-text>
+            {REVIEW_PRESETS.map((p) => (
+              <s-button
+                key={p.key}
+                variant="tertiary"
+                onClick={() => {
+                  setSubject(p.subject);
+                  setMessage(p.message);
+                }}
+              >
+                {p.label}
+              </s-button>
+            ))}
+          </s-stack>
+          <s-text-field
+            name="subject"
+            label="Subject"
+            value={subject}
+            maxLength={150}
+            onInput={(e: any) => setSubject(e.target.value)}
+          />
+          <s-text-area
+            name="message"
+            label="Message"
+            rows={5}
+            value={message}
+            maxLength={1500}
+            onInput={(e: any) => setMessage(e.target.value)}
+            details="Write it like you would to a customer. Use {store} for your store name and {name} for their first name. The greeting, the star rating and the unsubscribe link are added automatically."
+          />
           <s-checkbox
             name="consent"
             label="These customers have bought from my store"
@@ -327,7 +361,7 @@ export default function Reviews() {
               variant="primary"
               disabled={!consent || recipients.trim() === "" || (d.configured && left === 0)}
               {...(sending ? { loading: true } : {})}
-              onClick={() => sendFetcher.submit({ intent: d.configured ? "send" : "prepare", recipients, consent: consent ? "yes" : "no" }, { method: "post" })}
+              onClick={() => sendFetcher.submit({ intent: d.configured ? "send" : "prepare", recipients, consent: consent ? "yes" : "no", subject, message }, { method: "post" })}
             >
               {d.configured ? "Send requests" : "Create emails"}
             </s-button>
@@ -392,52 +426,6 @@ export default function Reviews() {
           </s-stack>
         </s-section>
       )}
-
-      <s-section heading="Your email">
-        <s-stack direction="block" gap="base">
-          <s-stack direction="inline" gap="small-300" alignItems="center">
-            <s-text color="subdued">Start from:</s-text>
-            {REVIEW_PRESETS.map((p) => (
-              <s-button
-                key={p.key}
-                variant="tertiary"
-                onClick={() => {
-                  setSubject(p.subject);
-                  setMessage(p.message);
-                }}
-              >
-                {p.label}
-              </s-button>
-            ))}
-          </s-stack>
-          <s-text-field
-            name="subject"
-            label="Subject"
-            value={subject}
-            maxLength={150}
-            onInput={(e: any) => setSubject(e.target.value)}
-          />
-          <s-text-area
-            name="message"
-            label="Message"
-            rows={5}
-            value={message}
-            maxLength={1500}
-            onInput={(e: any) => setMessage(e.target.value)}
-            details="Write it like you would to a customer. Use {store} for your store name and {name} for their first name. The greeting, the star rating and the unsubscribe link are added automatically."
-          />
-          <s-stack direction="inline" gap="base">
-            <s-button
-              variant="primary"
-              {...(tplFetcher.state !== "idle" ? { loading: true } : {})}
-              onClick={() => tplFetcher.submit({ intent: "template", subject, message }, { method: "post" })}
-            >
-              Save email
-            </s-button>
-            {dirty && <s-text color="subdued">Unsaved changes</s-text>}
-          </s-stack>
-        </s-stack>
-      </s-section>
 
       <s-section heading="Where replies and reviews go">
         <s-stack direction="block" gap="base">
