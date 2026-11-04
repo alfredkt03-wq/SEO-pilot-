@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs } from "react-router";
 import { useFetcher, useLoaderData, useRouteError } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
@@ -10,13 +10,13 @@ import { REVIEW_MAX_PER_SEND, TIER_LABEL } from "../lib/plans";
 import {
   emailsUsedThisMonth,
   monthlyLimit,
-  parseRecipients,
   prepareReviewLinks,
   reviewStats,
   reviewsConfigured,
   sendReviewRequests,
   shopLabel,
 } from "../lib/reviews.server";
+import { parseRecipients } from "../lib/recipients";
 import { PageStrip } from "../components/PageStrip";
 import { DEFAULT_MESSAGE, DEFAULT_SUBJECT, REVIEW_PRESETS } from "../lib/review-text";
 
@@ -194,6 +194,7 @@ export default function Reviews() {
   const shopify = useAppBridge();
   const [recipients, setRecipients] = useState("");
   const [consent, setConsent] = useState(false);
+  const parsed = useMemo(() => parseRecipients(recipients), [recipients]);
   const [prepared, setPrepared] = useState<Array<{ email: string; name: string | null; subject: string; text: string }>>([]);
   // Rows whose Gmail window the merchant has opened. Opening is not sending —
   // the merchant still presses Send in Gmail — so this only tracks progress.
@@ -321,7 +322,11 @@ export default function Reviews() {
             value={recipients}
             placeholder={"anna@example.com, Anna\nben@example.com"}
             onInput={(e: any) => setRecipients(e.target.value)}
-            details={`One per line: email, then an optional first name. Up to ${REVIEW_MAX_PER_SEND} at a time.`}
+            details={
+              recipients.trim() === ""
+                ? `One per line: email, then an optional first name — or paste a customer export from Shopify. Up to ${REVIEW_MAX_PER_SEND} at a time.`
+                : `${parsed.valid.length} ready${parsed.invalid.length ? ` · ${parsed.invalid.length} not valid (${parsed.invalid.slice(0, 2).join(", ")}${parsed.invalid.length > 2 ? ", …" : ""})` : ""}${parsed.valid.length > REVIEW_MAX_PER_SEND ? ` · only ${REVIEW_MAX_PER_SEND} at a time` : ""}`
+            }
           />
           <s-text color="subdued">The email your customers get. Change it here — it is saved when you create or send.</s-text>
 

@@ -27,43 +27,9 @@ export async function emailsUsedThisMonth(shop: string): Promise<number> {
   return row && row.reviewEmailsMonth === monthKey() ? row.reviewEmailsUsedMonth : 0;
 }
 
-const EMAIL_RE = /^[^\s@<>()",;:]+@[^\s@<>()",;:]+\.[^\s@<>()",;:]{2,}$/;
-
-export interface Recipient {
-  email: string;
-  name: string | null;
-}
-
-// One recipient per line: "email" or "email, Name" (also "Name <email>").
-export function parseRecipients(text: string): { valid: Recipient[]; invalid: string[] } {
-  const valid: Recipient[] = [];
-  const invalid: string[] = [];
-  const seen = new Set<string>();
-  for (const raw of text.split(/\r?\n|;/)) {
-    const line = raw.trim();
-    if (!line) continue;
-    let email = "";
-    let name = "";
-    const angle = line.match(/^(.*)<([^>]+)>\s*$/);
-    if (angle) {
-      name = angle[1].trim().replace(/^"|"$/g, "");
-      email = angle[2].trim();
-    } else {
-      const parts = line.split(/[,\t]/).map((p) => p.trim());
-      email = parts[0];
-      name = parts.slice(1).join(" ").trim();
-    }
-    email = email.toLowerCase();
-    if (!EMAIL_RE.test(email) || email.length > 200) {
-      invalid.push(line.slice(0, 80));
-      continue;
-    }
-    if (seen.has(email)) continue;
-    seen.add(email);
-    valid.push({ email, name: name ? name.slice(0, 60) : null });
-  }
-  return { valid, invalid };
-}
+import { parseRecipients, type Recipient } from "./recipients";
+export { parseRecipients };
+export type { Recipient };
 
 function appUrl(): string {
   // Same fallback order as shopify.server.ts: Render sets RENDER_EXTERNAL_URL even when SHOPIFY_APP_URL isn't configured.
