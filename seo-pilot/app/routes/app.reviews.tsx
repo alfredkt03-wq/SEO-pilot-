@@ -194,6 +194,18 @@ export default function Reviews() {
   const [recipients, setRecipients] = useState("");
   const [consent, setConsent] = useState(false);
   const [prepared, setPrepared] = useState<Array<{ email: string; name: string | null; subject: string; text: string }>>([]);
+  // Rows whose Gmail window the merchant has opened. Opening is not sending —
+  // the merchant still presses Send in Gmail — so this only tracks progress.
+  const [opened, setOpened] = useState<Set<string>>(new Set());
+  const gmailUrl = (p: { email: string; subject: string; text: string }) =>
+    `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(p.email)}&su=${encodeURIComponent(p.subject)}&body=${encodeURIComponent(p.text)}`;
+  const markOpened = (email: string) => setOpened((prev) => new Set(prev).add(email));
+  const openNext = () => {
+    const next = prepared.find((p) => !opened.has(p.email));
+    if (!next) return;
+    markOpened(next.email);
+    window.open(gmailUrl(next), "_blank", "noopener");
+  };
   const [reviewLink, setReviewLink] = useState(d.reviewLink);
   const [replyTo, setReplyTo] = useState(d.replyTo);
   const [subject, setSubject] = useState(d.subject || d.defaultSubject);
@@ -215,6 +227,7 @@ export default function Reviews() {
       if (p.invalid.length) bits.push(`${p.invalid.length} not valid`);
       shopify.toast.show(bits.join(" · "));
       setPrepared(p.items);
+      setOpened(new Set());
       if (p.items.length > 0) setRecipients("");
     } else if (r.ok && "summary" in r && r.summary) {
       const s = r.summary;
@@ -330,11 +343,17 @@ export default function Reviews() {
       {prepared.length > 0 && (
         <s-section heading={`Not sent yet — ${prepared.length} ready`}>
           <s-stack direction="block" gap="small-300">
-            <s-text color="subdued">Press Open in Gmail on each row, then press Send in Gmail. You can also copy the text and paste it into any mail or chat.</s-text>
+            <s-text color="subdued">Press the button, then press Send in the Gmail window that opens. Repeat until every customer is done. Opening is not sending — nothing goes out until you press Send in Gmail.</s-text>
+            <s-stack direction="inline" gap="base" alignItems="center">
+              <s-button variant="primary" disabled={opened.size >= prepared.length} onClick={openNext}>
+                {opened.size >= prepared.length ? "All opened" : "Open next in Gmail"}
+              </s-button>
+              <s-text color="subdued">{opened.size} of {prepared.length} opened</s-text>
+            </s-stack>
             {prepared.map((p) => (
               <div className="rv-row" key={p.email}>
                 <div className="rv-who">
-                  <b>{p.name ? `${p.name} · ` : ""}{p.email}</b>
+                  <b>{p.name ? `${p.name} · ` : ""}{p.email}{opened.has(p.email) ? " · opened" : ""}</b>
                   <span>{p.subject}</span>
                 </div>
                 <s-stack direction="inline" gap="small-300">
@@ -342,7 +361,8 @@ export default function Reviews() {
                     className="rv-open"
                     target="_blank"
                     rel="noreferrer"
-                    href={`https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(p.email)}&su=${encodeURIComponent(p.subject)}&body=${encodeURIComponent(p.text)}`}
+                    href={gmailUrl(p)}
+                    onClick={() => markOpened(p.email)}
                   >
                     Open in Gmail
                   </a>
