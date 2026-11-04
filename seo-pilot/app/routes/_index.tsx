@@ -9,14 +9,14 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
 
   // Shopify Admin opens the app at "/" with the shop handle in the query
   // string. Hand straight off to the embedded dashboard, forwarding every
-  // parameter â€” App Bridge needs `host` and `embedded` to set up the session,
+  // parameter — App Bridge needs `host` and `embedded` to set up the session,
   // so they can't be dropped here.
   if (url.searchParams.get("shop")) {
     throw redirect(`/app?${url.searchParams.toString()}`);
   }
 
   // Merchants install from the Shopify App Store, where Shopify itself
-  // handles the install and tells the app which store it is â€” so this page
+  // handles the install and tells the app which store it is — so this page
   // has no store-address form. Set SHOPIFY_APP_STORE_URL (in Render) to the
   // listing URL once it exists; until then the page says "coming soon".
   return { appStoreUrl: process.env.SHOPIFY_APP_STORE_URL || null };
@@ -46,7 +46,7 @@ const STEPS = [
 ];
 
 const FEATURES: Array<{ title: string; body: string; icon: string; tone: "green" | "gold" }> = [
-  { title: "Full-store scan", body: "Products, collections, pages and homepage â€” checked for titles, meta descriptions, alt text and thin content.", icon: SCAN, tone: "green" },
+  { title: "Full-store scan", body: "Products, collections, pages and homepage — checked for titles, meta descriptions, alt text and thin content.", icon: SCAN, tone: "green" },
   { title: "Reviewed fixes", body: "Template or AI-written fixes. You confirm each one before anything changes on your store.", icon: WRENCH, tone: "gold" },
   { title: "Broken links & redirects", body: "Finds dead links and sends visitors to the right page, without touching your theme code.", icon: LINK, tone: "green" },
   { title: "Internal links", body: "Finds pages that mention another page without linking to it and adds the link in one click.", icon: LINK, tone: "gold" },
@@ -79,6 +79,9 @@ function GetApp({ appStoreUrl, onLight = false }: { appStoreUrl: string | null; 
 export const meta = () => [
   { title: "Metaglow SEO - Find and fix Shopify SEO problems" },
   { name: "description", content: "Scan your Shopify store for missing titles, weak meta descriptions and image alt text, then fix them in a few clicks." },
+  { property: "og:type", content: "website" },
+  { property: "og:title", content: "Metaglow SEO - Find and fix Shopify SEO problems" },
+  { property: "og:description", content: "Scan your Shopify store for missing titles, weak meta descriptions and image alt text, then fix them in a few clicks." },
 ];
 
 export default function Index() {
@@ -98,7 +101,7 @@ export default function Index() {
                 </h1>
                 <p className="pp-hero-sub">
                   Metaglow SEO scans your products, collections, pages and homepage for what keeps them
-                  out of Google â€” missing titles, weak descriptions, unlabeled images, broken links â€”
+                  out of Google — missing titles, weak descriptions, unlabeled images, broken links —
                   and fixes it in a click. No SEO knowledge needed.
                 </p>
                 <div className="pp-cta-row">
@@ -228,7 +231,7 @@ export default function Index() {
             </div>
             <p className="pp-plans-note">
               Metaglow SEO helps you follow Google's best practices. It can't promise a ranking or a
-              traffic increase â€” nobody honestly can.
+              traffic increase — nobody honestly can.
             </p>
           </div>
         </section>
