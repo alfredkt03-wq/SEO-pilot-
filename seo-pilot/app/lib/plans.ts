@@ -16,9 +16,9 @@ export type PaidTier = Exclude<Tier, "free">;
 
 export const PLANS = {
   basic: { usd: "Metaglow SEO Basic", inr: "Metaglow SEO Basic India", priceUsd: 3.89, priceInr: 309 },
-  premium: { usd: "Metaglow SEO Premium", inr: "Metaglow SEO Premium India", priceUsd: 11.39, priceInr: 979 },
-  exclusive: { usd: "Metaglow SEO Exclusive", inr: "Metaglow SEO Exclusive India", priceUsd: 29, priceInr: 2499 },
-  agency: { usd: "Metaglow SEO Agency", inr: "Metaglow SEO Agency India", priceUsd: 47.39, priceInr: 3999 },
+  premium: { usd: "Metaglow SEO Premium", inr: "Metaglow SEO Premium India", priceUsd: 9.79, priceInr: 979 },
+  exclusive: { usd: "Metaglow SEO Exclusive", inr: "Metaglow SEO Exclusive India", priceUsd: 23.49, priceInr: 2499 },
+  agency: { usd: "Metaglow SEO Agency", inr: "Metaglow SEO Agency India", priceUsd: 33.79, priceInr: 3999 },
 } as const;
 
 export type PlanName = (typeof PLANS)[PaidTier]["usd" | "inr"];
@@ -67,7 +67,7 @@ const RANK: Record<PaidTier, number> = { basic: 1, premium: 2, exclusive: 3, age
 // `from` is the lowest plan that includes the feature.
 const FEATURES_BY_TIER: Array<{ from: PaidTier; text: string }> = [
   { from: "basic", text: "Homepage check" },
-  { from: "basic", text: "One-click fixes and “Fix everything”" },
+  { from: "basic", text: "Review-and-apply fixes with suggested text" },
   { from: "basic", text: "SEO editor with live Google preview" },
   { from: "basic", text: "Unique titles for duplicate pages, written by AI" },
   { from: "basic", text: "Image alt text fixes and image compression" },

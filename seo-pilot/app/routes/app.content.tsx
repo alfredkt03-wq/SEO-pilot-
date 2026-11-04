@@ -2,14 +2,14 @@ import type { HeadersFunction, LoaderFunctionArgs } from "react-router";
 import { useLoaderData } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
-import { checkPlan } from "../lib/billing.server";
+import { checkPlan, checkPlanCached } from "../lib/billing.server";
 import { analyzeAll, type ContentReport } from "../lib/content-analysis.server";
 import { loadNodes } from "../lib/internal-links.server";
 import { PageStrip } from "../components/PageStrip";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { admin, billing } = await authenticate.admin(request);
-  const { tier } = await checkPlan(billing);
+  const { admin, billing, session } = await authenticate.admin(request);
+  const { tier } = await checkPlanCached(billing, session.shop);
   const eligible = tier === "premium" || tier === "exclusive" || tier === "agency";
   if (!eligible) return { eligible, reports: [] as ContentReport[] };
   return { eligible, reports: analyzeAll(await loadNodes(admin)) };
@@ -33,7 +33,7 @@ export default function Content() {
   return (
     <s-page heading="Content check">
       <PageStrip icon="doc" title="Find pages with too little text" text="Google ranks thin pages lower. See which ones need more words." />
-      <s-link slot="breadcrumb-actions" href="/app/tools">Tools</s-link>
+      <s-link slot="breadcrumb-actions" href="/app">Dashboard</s-link>
       <s-section heading="What this does">
         <s-paragraph>
           Google learns what a page is about from its text. This checks the text on your products,

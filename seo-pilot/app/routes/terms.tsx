@@ -38,7 +38,7 @@ export default function Terms() {
             <h2>What the app does</h2>
             <p>
               Metaglow SEO scans your Shopify store for SEO issues and offers fixes, which you review and
-              apply — automatically where you choose "Fix everything," or one at a time. You are
+              apply one at a time. You are
               responsible for reviewing any fix, AI-written or template-based, before or after it's
               applied, and for how your store's content reads once changed.
             </p>
@@ -95,7 +95,7 @@ export default function Terms() {
             <h2>Your responsibilities</h2>
             <ul>
               <li>You keep control of your Shopify account and who has access to it</li>
-              <li>You review changes the app makes to your store, especially bulk "Fix everything" runs</li>
+              <li>You review changes the app makes to your store, before applying fixes and bulk edits</li>
               <li>You use the app only for a store you own or are authorized to manage</li>
               <li>You comply with Shopify's own Acceptable Use Policy and Terms of Service</li>
             </ul>

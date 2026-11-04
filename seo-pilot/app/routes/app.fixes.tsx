@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs } from "react-router";
 import { useFetcher, useLoaderData } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
@@ -7,7 +7,7 @@ import { authenticate } from "../shopify.server";
 import db from "../db.server";
 import { applyFixesToIssues, isFixable } from "../lib/apply-fix.server";
 import { recordFixesApplied } from "../lib/impact.server";
-import { checkPlan, getShopMarket, isIndianStore, getPricing } from "../lib/billing.server";
+import { checkPlan, checkPlanCached, getShopMarket, isIndianStore, getPricing } from "../lib/billing.server";
 import {
   aiConfigured,
   aiSuggestionForIssue,
@@ -101,7 +101,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       // disagree with what the dashboard reports.
       orderBy: [{ createdAt: "asc" }],
     }),
-    checkPlan(billing),
+    checkPlanCached(billing, session.shop),
     getPricing(admin, shop),
   ]);
   const { hasActivePayment, tier } = planStatus;
@@ -230,6 +230,26 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   return { mode: "apply" as const, fixed: result.fixed, failed: result.failed, errors };
 };
 
+// Turns the AI's small HTML (p / ul / li / strong) into readable plain text for review.
+function htmlToText(html: string | null | undefined): string {
+  if (!html) return "";
+  return stripHtml(
+    html
+      .replace(/<\/p>|<br\s*\/?>/gi, "\n\n")
+      .replace(/<li[^>]*>/gi, "\n• ")
+      .replace(/<\/li>/gi, ""),
+  )
+    .replace(/[ \t]+/g, " ")
+    .replace(/ ([.,;:!?])/g, "$1")
+    .replace(/ ?\n ?/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+function suggestionText(issue: { type: string; suggestion: string | null }): string {
+  return issue.type === "THIN_CONTENT" ? htmlToText(issue.suggestion) : (issue.suggestion ?? "");
+}
+
 type Row = RedactableSeoIssueRow & { canApply: boolean; aiWritable: boolean };
 
 const FIX_CSS = `
@@ -241,6 +261,7 @@ const FIX_CSS = `
 .fx-stats{display:flex;gap:10px;flex-wrap:wrap}
 .fx-stat{background:#fff;border:1px solid #e1e3e5;border-radius:8px;padding:8px 14px;text-align:center;min-width:84px}
 .fx-stat b{display:block;font-size:20px;line-height:1.1;font-variant-numeric:tabular-nums}
+.fx-review-text{white-space:pre-wrap;padding:12px 14px;border-radius:8px;background:#f6f6f7;border:1px solid #e1e3e5;font-size:14px;line-height:1.6;color:#202223;max-height:300px;overflow:auto}
 .fx-stat span{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:#616a75}
 @media (prefers-reduced-motion:no-preference){.fx-strip{animation:fx-in .35s ease-out}}
 @keyframes fx-in{from{opacity:.4;transform:translateY(4px)}to{opacity:1;transform:none}}
@@ -258,6 +279,39 @@ export default function Fixes() {
     aiWorking ? (aiFetcher.formData?.getAll("issueId").map(String) ?? []) : [],
   );
   const aiAvailable = ai.configured && ai.remaining > 0;
+
+  // The text being reviewed. Opens by itself right after AI writes a single fix,
+  // so the merchant sees the result where they clicked.
+  const [reviewId, setReviewId] = useState<string | null>(null);
+  const reviewRef = useRef<HTMLDivElement | null>(null);
+  const lastSingleAi = useRef<string | null>(null);
+  const reviewIssue: Row | undefined = reviewId ? fixable.find((i: Row) => i.id === reviewId) : undefined;
+
+  useEffect(() => {
+    const d = aiFetcher.data;
+    if (d?.mode === "ai" && aiFetcher.state === "idle" && d.written > 0 && lastSingleAi.current) {
+      setReviewId(lastSingleAi.current);
+      lastSingleAi.current = null;
+    }
+  }, [aiFetcher.data, aiFetcher.state]);
+
+  useEffect(() => {
+    const d = applyFetcher.data;
+    if (reviewId && d?.mode === "apply" && applyFetcher.state === "idle" && d.fixed > 0 && !reviewIssue) {
+      setReviewId(null);
+    }
+  }, [applyFetcher.data, applyFetcher.state, reviewId, reviewIssue]);
+
+  useEffect(() => {
+    if (reviewIssue) reviewRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [reviewId, reviewIssue?.suggestion]);
+
+  const saveReviewed = (id: string) => {
+    const data = new FormData();
+    data.set("intent", "apply");
+    data.append("issueId", id);
+    applyFetcher.submit(data, { method: "post" });
+  };
 
   useEffect(() => {
     const d = applyFetcher.data;
@@ -280,8 +334,13 @@ export default function Fixes() {
     const data = new FormData();
     data.set("intent", "ai");
     ids.forEach((id) => data.append("issueId", id));
+    lastSingleAi.current = ids.length === 1 ? ids[0] : null;
     aiFetcher.submit(data, { method: "post" });
   };
+
+  const thinAiIds = manual
+    .filter((i: Row) => i.type === "THIN_CONTENT" && i.aiWritable)
+    .map((i: Row) => i.id);
 
   const errors = [
     ...(applyFetcher.data?.errors ?? []),
@@ -326,6 +385,45 @@ export default function Fixes() {
           <div className="fx-stat"><b>{manual.length}</b><span>Needs you</span></div>
         </div>
       </div>
+
+      {reviewIssue && (
+        <s-section heading={`Review the text for ${reviewIssue.resourceTitle}`}>
+          <div ref={reviewRef}>
+            <s-stack direction="block" gap="base">
+              <s-text color="subdued">
+                {TYPE_LABELS[reviewIssue.type] ?? reviewIssue.type}
+                {reviewIssue.aiGenerated ? " · written by AI" : ""}
+              </s-text>
+              {reviewIssue.canApply ? (
+                <div className="fx-review-text">{suggestionText(reviewIssue)}</div>
+              ) : (
+                <s-text color="subdued">Start a plan to see and apply this text.</s-text>
+              )}
+              <s-stack direction="inline" gap="small" alignItems="center">
+                {reviewIssue.canApply ? (
+                  <s-button variant="primary" onClick={() => saveReviewed(reviewIssue.id)} {...(applying ? { loading: true } : {})}>
+                    Save
+                  </s-button>
+                ) : (
+                  <s-button variant="primary" href="/app/billing">See plans</s-button>
+                )}
+                {ai.configured && reviewIssue.aiWritable && (
+                  <s-button
+                    variant="secondary"
+                    disabled={!aiAvailable}
+                    onClick={() => writeWithAi([reviewIssue.id])}
+                    {...(aiPendingIds.has(reviewIssue.id) ? { loading: true } : {})}
+                  >
+                    Write again with AI
+                  </s-button>
+                )}
+                <s-button variant="tertiary" onClick={() => setReviewId(null)}>Close</s-button>
+              </s-stack>
+              <s-text color="subdued">Nothing is saved until you press Save.</s-text>
+            </s-stack>
+          </div>
+        </s-section>
+      )}
 
       <s-section heading={`One-click fixes (${fixable.length})`}>
         {fixable.length === 0 ? (
@@ -400,6 +498,11 @@ export default function Fixes() {
                       </s-table-cell>
                       <s-table-cell>
                         <s-stack direction="block" gap="small-300">
+                          {issue.canApply && (
+                            <s-button variant="secondary" onClick={() => setReviewId(issue.id)}>
+                              See text
+                            </s-button>
+                          )}
                           {ai.configured && issue.aiWritable && (
                             <s-button
                               variant="secondary"
@@ -434,6 +537,16 @@ export default function Fixes() {
           <s-paragraph>
             These need judgment or a change outside Metaglow SEO — each one says what to do.
           </s-paragraph>
+          {ai.configured && thinAiIds.length > 1 && (
+            <s-button
+              variant="secondary"
+              disabled={!aiAvailable}
+              onClick={() => writeWithAi(thinAiIds)}
+              {...(aiFetcher.state !== "idle" ? { loading: true } : {})}
+            >
+              {`Write all ${thinAiIds.length} descriptions with AI`}
+            </s-button>
+          )}
           <s-table>
             <s-table-header-row>
               <s-table-header>Item</s-table-header>
@@ -482,6 +595,11 @@ export default function Fixes() {
                             AI descriptions: Premium
                           </s-button>
                         )}
+                      {issue.type === "THIN_CONTENT" && !(ai.configured && issue.aiWritable) && (
+                        <s-button variant="tertiary" href={editorHref(issue)}>
+                          Write it yourself
+                        </s-button>
+                      )}
                       {DUPLICATE_TYPES.has(issue.type) && ai.configured && issue.aiWritable && (
                         <s-button
                           variant="tertiary"

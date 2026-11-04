@@ -7,7 +7,7 @@ import { authenticate } from "../shopify.server";
 import db from "../db.server";
 import { fetchAndCompressImage, uploadCompressedImage } from "../lib/image-optimize.server";
 import { TRIAL_DAYS } from "../lib/plans";
-import { checkPlan, requirePlan } from "../lib/billing.server";
+import { checkPlan, checkPlanCached, requirePlan } from "../lib/billing.server";
 import type { SeoIssueRow } from "../lib/types";
 import { PageStrip } from "../components/PageStrip";
 
@@ -20,7 +20,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
       orderBy: { createdAt: "asc" },
       take: 100,
     }),
-    checkPlan(billing),
+    checkPlanCached(billing, session.shop),
   ]);
   const { hasActivePayment } = planStatus;
 
@@ -86,7 +86,7 @@ export default function Images() {
   return (
     <s-page heading="Image optimization">
       <PageStrip icon="image" title="Shrink oversized images" text="Smaller images make your pages load faster." />
-      <s-link slot="breadcrumb-actions" href="/app/tools">Tools</s-link>
+      <s-link slot="breadcrumb-actions" href="/app">Dashboard</s-link>
       {!hasActivePayment && (
         <s-banner heading="Subscription required" tone="warning">
           <s-paragraph>

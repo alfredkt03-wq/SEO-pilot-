@@ -47,7 +47,7 @@ const STEPS = [
 
 const FEATURES: Array<{ title: string; body: string; icon: string; tone: "green" | "gold" }> = [
   { title: "Full-store scan", body: "Products, collections, pages and homepage â€” checked for titles, meta descriptions, alt text and thin content.", icon: SCAN, tone: "green" },
-  { title: "One-click fixes", body: "Template or AI-written fixes. You confirm before anything changes on your store.", icon: WRENCH, tone: "gold" },
+  { title: "Reviewed fixes", body: "Template or AI-written fixes. You confirm each one before anything changes on your store.", icon: WRENCH, tone: "gold" },
   { title: "Broken links & redirects", body: "Finds dead links and sends visitors to the right page, without touching your theme code.", icon: LINK, tone: "green" },
   { title: "Internal links", body: "Finds pages that mention another page without linking to it and adds the link in one click.", icon: LINK, tone: "gold" },
   { title: "Structured data", body: "Schema.org markup for products, articles and breadcrumbs, so Google can show richer results.", icon: CODE, tone: "gold" },
@@ -140,7 +140,7 @@ export default function Index() {
                       B+<small>79 / 100</small>
                     </div>
                   </div>
-                  <div className="pp-mock-note">4 problems to fix.<br />3 can be fixed automatically.</div>
+                  <div className="pp-mock-note">4 problems to fix.<br />3 have a suggested fix.</div>
                 </div>
                 <div className="pp-mock-row">
                   <span className="pp-pill high">High</span>
@@ -158,7 +158,7 @@ export default function Index() {
                   <span className="pp-pill low">Low</span>
                   <span>SEO title a little short</span>
                 </div>
-                <div className="pp-mock-btn">Fix everything automatically</div>
+                <div className="pp-mock-btn">Review suggested fixes</div>
               </div>
             </section>
           </div>

@@ -5,7 +5,7 @@ import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
-import { checkPlan } from "../lib/billing.server";
+import { checkPlan, checkPlanCached } from "../lib/billing.server";
 import { analyzeAll, type ContentReport } from "../lib/content-analysis.server";
 import { loadNodes } from "../lib/internal-links.server";
 import { estimateMinutesSaved } from "../lib/impact.server";
@@ -15,7 +15,7 @@ import { estimateMinutesSaved } from "../lib/impact.server";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, billing, session } = await authenticate.admin(request);
-  const { tier } = await checkPlan(billing);
+  const { tier } = await checkPlanCached(billing, session.shop);
   const eligible = tier === "exclusive" || tier === "agency";
   if (!eligible) return { eligible, tier, shop: session.shop };
 
@@ -81,7 +81,7 @@ export default function Report() {
   if (!data.eligible) {
     return (
       <s-page heading="SEO report">
-      <s-link slot="breadcrumb-actions" href="/app/tools">Tools</s-link>
+      <s-link slot="breadcrumb-actions" href="/app">Dashboard</s-link>
         <s-banner heading="SEO reports are on Exclusive and Agency" tone="info">
           <s-paragraph>
             A one-page report of your score and open issues, with a CSV download you can open in

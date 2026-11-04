@@ -4,7 +4,7 @@ import { useFetcher, useLoaderData } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
-import { checkPlan, requirePlan } from "../lib/billing.server";
+import { checkPlan, checkPlanCached, requirePlan } from "../lib/billing.server";
 import { recordRedirectCreated } from "../lib/impact.server";
 import type { RedirectRow } from "../lib/types";
 import { PageStrip } from "../components/PageStrip";
@@ -12,8 +12,8 @@ import { PageStrip } from "../components/PageStrip";
 // Redirects are part of every paid plan (Basic and up); there is no free tier.
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { admin, billing } = await authenticate.admin(request);
-  const { tier } = await checkPlan(billing);
+  const { admin, billing, session } = await authenticate.admin(request);
+  const { tier } = await checkPlanCached(billing, session.shop);
   const bulk = tier === "exclusive" || tier === "agency";
   const prefillPath = new URL(request.url).searchParams.get("path") ?? "";
 
@@ -162,7 +162,7 @@ export default function Redirects() {
   return (
     <s-page heading="Redirects">
       <PageStrip icon="redirect" title="Send broken links somewhere useful" text="Create redirects so visitors and Google never hit a dead end." />
-      <s-link slot="breadcrumb-actions" href="/app/tools">Tools</s-link>
+      <s-link slot="breadcrumb-actions" href="/app">Dashboard</s-link>
       <s-section heading="Fix a broken link (404)">
         <s-paragraph>
           Point an old or mistyped URL to the right page. Example: redirect{" "}

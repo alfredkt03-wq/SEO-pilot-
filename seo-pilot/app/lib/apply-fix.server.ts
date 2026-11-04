@@ -4,7 +4,7 @@ import type { SeoIssueRow } from "./types";
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // Shopify's GraphQL Admin API is cost-based rate limited. A single fix here
-// is cheap, but "fix everything" can fire hundreds of mutations back to
+// is cheap, but applying many fixes at once can fire hundreds of mutations back to
 // back — without this, a bigger store's bulk fix starts hitting THROTTLED
 // partway through and those issues get reported as failed even though
 // nothing was actually wrong with them. Retries with backoff, then gives up
@@ -335,9 +335,7 @@ export interface BulkFixResult {
   errors: Array<{ issue: SeoIssueRow; error: string }>;
 }
 
-// Shared by the "Apply selected fixes" table (Fixes page) and the dashboard's
-// one-click "Fix everything automatically" button, so both apply the exact
-// same per-issue logic and can't silently drift apart.
+// Applies the fixes the merchant selected on the Fixes page.
 export async function applyFixesToIssues(admin: any, issues: SeoIssueRow[]): Promise<BulkFixResult> {
   let fixed = 0;
   let failed = 0;
@@ -353,7 +351,7 @@ export async function applyFixesToIssues(admin: any, issues: SeoIssueRow[]): Pro
       errors.push({ issue, error: result.error ?? "Unknown error" });
     }
     // A small gap between mutations, on top of graphqlWithRetry's backoff —
-    // "fix everything" on a big catalog is exactly the case that would
+    // a big batch on a large catalog is exactly the case that would
     // otherwise slam straight into Shopify's rate limit.
     await sleep(150);
   }

@@ -7,7 +7,7 @@ import { authenticate } from "../shopify.server";
 import db from "../db.server";
 import { setResourceSeo } from "../lib/apply-fix.server";
 import { recordFixesApplied } from "../lib/impact.server";
-import { checkPlan, getShopMarket, isIndianStore, requirePlan } from "../lib/billing.server";
+import { checkPlan, checkPlanCached, getShopMarket, isIndianStore, requirePlan } from "../lib/billing.server";
 import {
   aiConfigured,
   aiWriteMetaDescription,
@@ -52,7 +52,7 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
     : "product";
   const q = url.searchParams.get("q")?.trim() ?? "";
   const items = await searchEditorResources(admin, type, q);
-  const { hasActivePayment, tier } = await checkPlan(billing);
+  const { hasActivePayment, tier } = await checkPlanCached(billing, session.shop);
   const allowance = await getAiAllowance(session.shop, tier);
   return { type, q, items, hasActivePayment, ai: { ...allowance, configured: aiConfigured() } };
 };

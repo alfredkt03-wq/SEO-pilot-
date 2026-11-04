@@ -2,14 +2,14 @@ import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs } from "re
 import { useLoaderData, useSearchParams } from "react-router";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
-import { checkPlan } from "../lib/billing.server";
+import { checkPlan, checkPlanCached } from "../lib/billing.server";
 import { disconnectGsc, getGscStatus, gscConfigured, refreshGscStats } from "../lib/gsc.server";
 
 const STALE_AFTER_MS = 12 * 60 * 60 * 1000; // 12 hours
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { session, billing } = await authenticate.admin(request);
-  const { tier } = await checkPlan(billing);
+  const { tier } = await checkPlanCached(billing, session.shop);
   const eligible = tier === "premium" || tier === "exclusive" || tier === "agency";
 
   if (!eligible || !gscConfigured()) {
@@ -62,7 +62,7 @@ export default function SearchConsole() {
   if (!configured) {
     return (
       <s-page heading="Search Console">
-      <s-link slot="breadcrumb-actions" href="/app/tools">Tools</s-link>
+      <s-link slot="breadcrumb-actions" href="/app">Dashboard</s-link>
         <s-banner heading="Not set up yet" tone="info">
           <s-paragraph>
             Search Console is temporarily unavailable. Everything else in the app works as normal.

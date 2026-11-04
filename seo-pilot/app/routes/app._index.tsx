@@ -1,18 +1,17 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs } from "react-router";
-import { useFetcher, useLoaderData } from "react-router";
+import { Link, useFetcher, useLoaderData } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
 import { runSeoAudit } from "../lib/seo-audit.server";
-import { applyFixesToIssues, isFixable } from "../lib/apply-fix.server";
-import { estimateMinutesSaved, recordFixesApplied } from "../lib/impact.server";
-import { checkPlan, getShopMarket, isIndianStore, requirePlan } from "../lib/billing.server";
+import { isFixable } from "../lib/apply-fix.server";
+import { estimateMinutesSaved } from "../lib/impact.server";
+import { checkPlan, checkPlanCached, getShopMarket, isIndianStore } from "../lib/billing.server";
 import { aiConfigured, getAiAllowance } from "../lib/ai.server";
 import { runSpeedCheck } from "../lib/speed.server";
 import { AI_CREDITS, SCAN_PAGES, TIER_LABEL, TRIAL_DAYS, pricingForBillingCurrency } from "../lib/plans";
-import type { SeoIssueRow } from "../lib/types";
 
 // After this long without a scan, the dashboard nudges the merchant to
 // re-scan — products, pages and posts change, and new issues creep in.
@@ -23,32 +22,31 @@ export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { admin, session, billing } = await authenticate.admin(request);
   const shop = session.shop;
 
-  const [scan, openIssues, planStatus, market] = await Promise.all([
+  const [scan, openIssues, planStatus, market, historyRows] = await Promise.all([
     db.seoScan.findUnique({ where: { shop } }),
     db.seoIssue.findMany({
       where: { shop, fixed: false },
       select: { severity: true, type: true, suggestion: true, resourceType: true },
     }),
-    checkPlan(billing),
+    checkPlanCached(billing, session.shop),
     getShopMarket(admin, shop),
+    db.seoScanHistory
+      .findMany({
+        where: { shop },
+        orderBy: { scannedAt: "desc" },
+        take: 12,
+        select: { score: true, scannedAt: true },
+      })
+      .catch(() => []),
   ]);
   const { hasActivePayment, tier } = planStatus;
 
-  let history: { score: number; scannedAt: string }[] = [];
-  try {
-    const rows = await db.seoScanHistory.findMany({
-      where: { shop },
-      orderBy: { scannedAt: "desc" },
-      take: 12,
-      select: { score: true, scannedAt: true },
-    });
-    history = rows.reverse().map((r: { score: number; scannedAt: Date }) => ({
+  const history: { score: number; scannedAt: string }[] = historyRows
+    .reverse()
+    .map((r: { score: number; scannedAt: Date }) => ({
       score: r.score,
       scannedAt: r.scannedAt.toISOString(),
     }));
-  } catch {
-    history = [];
-  }
   // Read after getShopMarket, which may have just created this row
   const [shopSettings, aiAllowance] = await Promise.all([
     db.shopSettings.findUnique({ where: { shop } }),
@@ -98,25 +96,6 @@ export const action = async ({ request }: ActionFunctionArgs) => {
   const formData = await request.formData();
   const intent = formData.get("intent");
 
-  if (intent === "autofix") {
-    // "Fix everything automatically" needs the paid plan.
-    await requirePlan(admin, billing, session.shop);
-
-    const openIssues: SeoIssueRow[] = await db.seoIssue.findMany({
-      where: { shop: session.shop, fixed: false },
-    });
-    // Rewriting a whole product description is never done in bulk: a thin
-    // description can still hold a size chart, video or legal text. Those fixes
-    // stay one at a time on the Fixes page, where the merchant sees the text first.
-    const fixable = openIssues.filter((i) => isFixable(i) && i.type !== "THIN_CONTENT");
-    const result = await applyFixesToIssues(admin, fixable);
-    if (result.fixed > 0) {
-      await recordFixesApplied(session.shop, result.fixed);
-    }
-
-    return { mode: "autofix" as const, fixed: result.fixed, failed: result.failed };
-  }
-
   if (intent === "speed") {
     try {
       const res = await admin.graphql(
@@ -152,11 +131,21 @@ export const action = async ({ request }: ActionFunctionArgs) => {
 const RING_C = 2 * Math.PI * 62;
 const TIER_RANK: Record<string, number> = { free: 0, basic: 1, premium: 2, exclusive: 3, agency: 4 };
 
-const MORE_TOOLS: Array<{ title: string; body: string; href: string; cta: string; min: "basic" | "premium" | "exclusive"; icon: string }> = [
-  { title: "Internal links", body: "Add missing links between your own pages in one click.", href: "/app/internal-links", cta: "Find links", min: "basic", icon: "M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" },
-  { title: "Content check", body: "See which pages need more or clearer text.", href: "/app/content", cta: "Check content", min: "premium", icon: "M6 3h9l4 4v14H6V3zM14 3v5h5M9 13h7M9 17h7" },
-  { title: "Autopilot", body: "Every new product checked the moment you add it.", href: "/app/autopilot", cta: "Open autopilot", min: "premium", icon: "M13 2L4 14h7l-1 8 9-12h-7l1-8z" },
-  { title: "SEO report", body: "Score and open issues on one page, with CSV download.", href: "/app/report", cta: "Open report", min: "exclusive", icon: "M5 20V10M12 20V4M19 20v-7" },
+type Tool = { title: string; body: string; href: string; icon: string; min?: "basic" | "premium" | "exclusive" };
+
+// Order follows how a merchant works: fix → write → automate → housekeeping.
+const TOOLS: Tool[] = [
+  { title: "Fixes", body: "Review and apply suggested fixes", href: "/app/fixes", icon: "M9 12l2 2 4-4M12 21a9 9 0 1 1 0-18 9 9 0 0 1 0 18z" },
+  { title: "Editor", body: "Write titles with a Google preview", href: "/app/editor", icon: "M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" },
+  { title: "Bulk editor", body: "Edit many products in one table", href: "/app/bulk", icon: "M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h7v7h-7z" },
+  { title: "Autopilot", body: "Checks each new product for you", href: "/app/autopilot", icon: "M13 2L4 14h7l-1 8 9-12h-7l1-8z", min: "premium" },
+  { title: "Content check", body: "Find pages with too little text", href: "/app/content", icon: "M6 3h9l4 4v14H6V3zM14 3v5h5M9 13h7M9 17h7", min: "premium" },
+  { title: "Internal links", body: "Link your pages together", href: "/app/internal-links", icon: "M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7", min: "basic" },
+  { title: "Redirects", body: "Send broken links to the right page", href: "/app/redirects", icon: "M3 12h14M13 6l6 6-6 6" },
+  { title: "Images", body: "Shrink oversized images", href: "/app/images", icon: "M3 5h18v14H3zM3 16l5-5 4 4 3-3 6 6M9 9.5h.01" },
+  { title: "Reviews", body: "Ask customers for a review", href: "/app/reviews", icon: "M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9L12 3z" },
+  { title: "SEO report", body: "Score and issues on one page, with CSV", href: "/app/report", icon: "M5 20V10M12 20V4M19 20v-7", min: "exclusive" },
+  { title: "Plans", body: "Your plan and billing", href: "/app/billing", icon: "M3 6h18v12H3zM3 10h18" },
 ];
 
 const DASH_CSS = `
@@ -238,6 +227,21 @@ const DASH_CSS = `
 .sp-tool-text span{font-size:13px;color:#616a75}
 .sp-tool-plan{font-weight:500;color:#0f6b57}
 @media (max-width:700px){.sp-steps li+li{border-left:0;padding-left:0;padding-top:12px}}
+.sp-tools{display:grid;grid-template-columns:repeat(auto-fill,minmax(228px,1fr));gap:12px}
+.sp-tool{position:relative;display:flex;flex-direction:column;gap:8px;padding:14px 16px;border:1px solid #e1e3e5;border-radius:10px;background:#fff;color:inherit;text-decoration:none;transition:border-color .15s ease,box-shadow .15s ease,transform .15s ease}
+.sp-tool:hover{border-color:#0f6b57;box-shadow:0 4px 14px -6px rgba(15,107,87,.35);transform:translateY(-1px)}
+.sp-tool:focus-visible{outline:2px solid #0f6b57;outline-offset:2px}
+.sp-tool-head{display:flex;align-items:center;gap:10px}
+.sp-tool-ico{width:32px;height:32px;border-radius:8px;flex:none;display:flex;align-items:center;justify-content:center;color:#0f6b57;background:#e8f3ef;border:1px solid #c6e0d6;transition:background .15s ease,color .15s ease}
+.sp-tool:hover .sp-tool-ico{background:#0f6b57;color:#fff;border-color:#0f6b57}
+.sp-tool-name{font-size:14px;font-weight:650;color:#202223;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.sp-tool-arrow{margin-left:auto;flex:none;color:#8c9196;transition:transform .15s ease,color .15s ease}
+.sp-tool:hover .sp-tool-arrow{transform:translateX(3px);color:#0f6b57}
+.sp-tool-desc{margin:0;font-size:13px;line-height:1.45;color:#616a75}
+.sp-tool-pill{font-size:11px;font-weight:650;line-height:1;padding:3px 7px;border-radius:999px;color:#0f6b57;background:#e8f3ef}
+.sp-tool-pill.is-count{color:#8a5a00;background:#fdf0d5}
+.sp-tool-pill.is-plan{color:#616a75;background:#f1f2f3}
+@media (prefers-reduced-motion:reduce){.sp-tool,.sp-tool-ico,.sp-tool-arrow{transition:none}.sp-tool:hover{transform:none}.sp-tool:hover .sp-tool-arrow{transform:none}}
 @media (prefers-reduced-motion:reduce){.sp-tile,.sp-more-card{transition:none}.sp-tile:hover,.sp-more-card:hover{transform:none}}
 `;
 
@@ -258,12 +262,10 @@ export default function Dashboard() {
     impact,
   } = useLoaderData<typeof loader>();
   const scanFetcher = useFetcher<typeof action>();
-  const autofixFetcher = useFetcher<typeof action>();
   const speedFetcher = useFetcher<typeof action>();
   const shopify = useAppBridge();
 
   const scanning = scanFetcher.state !== "idle";
-  const autofixing = autofixFetcher.state !== "idle";
   const speedTesting = speedFetcher.state !== "idle";
   const totalOpen = severityCounts.HIGH + severityCounts.MEDIUM + severityCounts.LOW;
 
@@ -277,16 +279,6 @@ export default function Dashboard() {
       }
     }
   }, [scanFetcher.data, shopify]);
-
-  useEffect(() => {
-    if (autofixFetcher.data?.mode === "autofix") {
-      const { fixed, failed } = autofixFetcher.data;
-      shopify.toast.show(
-        failed > 0 ? `Fixed ${fixed} issue(s), ${failed} failed — see Fixes for details` : `Fixed ${fixed} issue(s) automatically`,
-        failed > 0 ? { isError: true } : undefined,
-      );
-    }
-  }, [autofixFetcher.data, shopify]);
 
   useEffect(() => {
     if (speedFetcher.data?.mode === "speed") {
@@ -307,14 +299,38 @@ export default function Dashboard() {
       !lastScanSummary.collectionsFullyScanned);
 
   const runScan = () => scanFetcher.submit({}, { method: "POST" });
-  // "Fix everything" rewrites live store content in bulk, so it asks first
-  // instead of firing on a single accidental click.
-  const [confirmingFix, setConfirmingFix] = useState(false);
-  const runAutofix = () => {
-    setConfirmingFix(false);
-    autofixFetcher.submit({ intent: "autofix" }, { method: "POST" });
-  };
   const runSpeed = () => speedFetcher.submit({ intent: "speed" }, { method: "POST" });
+
+  // First run: scan automatically so the merchant sees their score within
+  // seconds of installing, instead of having to find and press a button.
+  // Scans are read-only. Guarded so it fires at most once per page load.
+  const autoScanned = useRef(false);
+  useEffect(() => {
+    if (!scan && hasActivePayment && !autoScanned.current && scanFetcher.state === "idle") {
+      autoScanned.current = true;
+      scanFetcher.submit({}, { method: "POST" });
+    }
+  }, [scan, hasActivePayment, scanFetcher]);
+
+  // Ask for an App Store review once the app has clearly helped (5+ fixes),
+  // never before. Dismissal is remembered per browser; storage can throw in
+  // embedded contexts, so it is wrapped and the banner simply stays hidden.
+  const [reviewAskHidden, setReviewAskHidden] = useState(true);
+  useEffect(() => {
+    try {
+      setReviewAskHidden(window.localStorage.getItem("mg-review-ask") === "1");
+    } catch {
+      setReviewAskHidden(true);
+    }
+  }, []);
+  const dismissReviewAsk = () => {
+    setReviewAskHidden(true);
+    try {
+      window.localStorage.setItem("mg-review-ask", "1");
+    } catch {
+      /* ignore */
+    }
+  };
 
   const hasScanned = Boolean(scan);
   const hasFixedOnce = impact.totalFixesApplied > 0;
@@ -361,7 +377,6 @@ export default function Dashboard() {
       <s-button slot="secondary-actions" href="/app/manual">
         How to use
       </s-button>
-      <s-button slot="secondary-actions" href="/app/tools">All tools</s-button>
 
       {scanIsStale && (
         <s-banner heading={`Your last scan was ${daysSinceScan} days ago`} tone="info">
@@ -375,13 +390,33 @@ export default function Dashboard() {
         </s-banner>
       )}
 
+      {hasActivePayment && impact.totalFixesApplied >= 5 && !reviewAskHidden && (
+        <s-banner heading="Is Metaglow SEO helping your store?" tone="success" dismissible onDismiss={dismissReviewAsk}>
+          <s-paragraph>
+            You have fixed {impact.totalFixesApplied} things so far. A short, honest review on the
+            Shopify App Store helps other store owners find the app.
+          </s-paragraph>
+          <s-button
+            slot="secondary-actions"
+            href="https://apps.shopify.com/seo-pilot-1#modal-show=WriteReviewModal"
+            target="_blank"
+            onClick={dismissReviewAsk}
+          >
+            Write a review
+          </s-button>
+        </s-banner>
+      )}
+
       {!hasActivePayment && (
         <s-section>
           <s-stack direction="block" gap="large">
             <s-stack direction="block" gap="small-300">
-              <s-badge tone="success" icon="check-circle-filled">
-                {TRIAL_DAYS}-day free trial
-              </s-badge>
+              <s-stack direction="inline" gap="small-300">
+                <s-badge tone="success" icon="check-circle-filled">
+                  {TRIAL_DAYS}-day free trial
+                </s-badge>
+                <s-badge tone="info">Launch price from {pricing.basic.priceLabel}/month</s-badge>
+              </s-stack>
               <s-heading>Welcome to Metaglow SEO</s-heading>
               <s-paragraph>
                 Find out what is keeping your store out of Google, and fix it in a few clicks. You
@@ -484,102 +519,31 @@ export default function Dashboard() {
         </span>
         <div className="sp-banner-text">
           <b>Your store's SEO, in plain words</b>
-          <span>Scan, review what Google cannot see, then fix it with one click or write the text yourself.</span>
+          <span>Scan, review what Google cannot see, then apply the fixes you approve or write the text yourself.</span>
         </div>
       </div>
-                  <s-section heading="All tools">
-        <s-grid gridTemplateColumns="repeat(auto-fit, minmax(210px, 1fr))" gap="small">
-          <s-clickable href="/app/fixes" background="subdued" border="base" borderRadius="large" padding="small-100">
-            <s-stack gap="small-500">
-              <s-stack direction="inline" justifyContent="space-between" alignItems="center">
-                <s-heading>Fixes</s-heading>
-                <s-text color="subdued">Open →</s-text>
-              </s-stack>
-              <s-text color="subdued">Fix what Google cannot see</s-text>
-            </s-stack>
-          </s-clickable>
-          <s-clickable href="/app/editor" background="subdued" border="base" borderRadius="large" padding="small-100">
-            <s-stack gap="small-500">
-              <s-stack direction="inline" justifyContent="space-between" alignItems="center">
-                <s-heading>Editor</s-heading>
-                <s-text color="subdued">Open →</s-text>
-              </s-stack>
-              <s-text color="subdued">Edit titles and descriptions</s-text>
-            </s-stack>
-          </s-clickable>
-          <s-clickable href="/app/bulk" background="subdued" border="base" borderRadius="large" padding="small-100">
-            <s-stack gap="small-500">
-              <s-stack direction="inline" justifyContent="space-between" alignItems="center">
-                <s-heading>Bulk editor</s-heading>
-                <s-text color="subdued">Open →</s-text>
-              </s-stack>
-              <s-text color="subdued">Edit many products at once</s-text>
-            </s-stack>
-          </s-clickable>
-          <s-clickable href="/app/autopilot" background="subdued" border="base" borderRadius="large" padding="small-100">
-            <s-stack gap="small-500">
-              <s-stack direction="inline" justifyContent="space-between" alignItems="center">
-                <s-heading>Autopilot</s-heading>
-                <s-text color="subdued">Open →</s-text>
-              </s-stack>
-              <s-text color="subdued">Check each new product</s-text>
-            </s-stack>
-          </s-clickable>
-          <s-clickable href="/app/content" background="subdued" border="base" borderRadius="large" padding="small-100">
-            <s-stack gap="small-500">
-              <s-stack direction="inline" justifyContent="space-between" alignItems="center">
-                <s-heading>Content check</s-heading>
-                <s-text color="subdued">Open →</s-text>
-              </s-stack>
-              <s-text color="subdued">Find pages with too little text</s-text>
-            </s-stack>
-          </s-clickable>
-          <s-clickable href="/app/internal-links" background="subdued" border="base" borderRadius="large" padding="small-100">
-            <s-stack gap="small-500">
-              <s-stack direction="inline" justifyContent="space-between" alignItems="center">
-                <s-heading>Internal links</s-heading>
-                <s-text color="subdued">Open →</s-text>
-              </s-stack>
-              <s-text color="subdued">Link your pages together</s-text>
-            </s-stack>
-          </s-clickable>
-          <s-clickable href="/app/redirects" background="subdued" border="base" borderRadius="large" padding="small-100">
-            <s-stack gap="small-500">
-              <s-stack direction="inline" justifyContent="space-between" alignItems="center">
-                <s-heading>Redirects</s-heading>
-                <s-text color="subdued">Open →</s-text>
-              </s-stack>
-              <s-text color="subdued">Fix broken links</s-text>
-            </s-stack>
-          </s-clickable>
-          <s-clickable href="/app/images" background="subdued" border="base" borderRadius="large" padding="small-100">
-            <s-stack gap="small-500">
-              <s-stack direction="inline" justifyContent="space-between" alignItems="center">
-                <s-heading>Images</s-heading>
-                <s-text color="subdued">Open →</s-text>
-              </s-stack>
-              <s-text color="subdued">Shrink big images</s-text>
-            </s-stack>
-          </s-clickable>
-          <s-clickable href="/app/reviews" background="subdued" border="base" borderRadius="large" padding="small-100">
-            <s-stack gap="small-500">
-              <s-stack direction="inline" justifyContent="space-between" alignItems="center">
-                <s-heading>Reviews</s-heading>
-                <s-text color="subdued">Open →</s-text>
-              </s-stack>
-              <s-text color="subdued">Ask customers for a review</s-text>
-            </s-stack>
-          </s-clickable>
-          <s-clickable href="/app/billing" background="subdued" border="base" borderRadius="large" padding="small-100">
-            <s-stack gap="small-500">
-              <s-stack direction="inline" justifyContent="space-between" alignItems="center">
-                <s-heading>Plans</s-heading>
-                <s-text color="subdued">Open →</s-text>
-              </s-stack>
-              <s-text color="subdued">Your plan and billing</s-text>
-            </s-stack>
-          </s-clickable>
-        </s-grid>
+      <s-section heading="All tools">
+        <nav className="sp-tools" aria-label="All tools">
+          {TOOLS.map((t) => {
+            const locked = t.min != null && TIER_RANK[tier] < TIER_RANK[t.min];
+            return (
+              <Link key={t.href} to={t.href} className="sp-tool" prefetch="intent">
+                <span className="sp-tool-head">
+                  <span className="sp-tool-ico" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d={t.icon} /></svg>
+                  </span>
+                  <span className="sp-tool-name">
+                    {t.title}
+                    {t.href === "/app/fixes" && totalOpen > 0 && <span className="sp-tool-pill is-count">{totalOpen} open</span>}
+                    {locked && t.min && <span className="sp-tool-pill is-plan">{TIER_LABEL[t.min]}</span>}
+                  </span>
+                  <svg className="sp-tool-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+                </span>
+                <p className="sp-tool-desc">{t.body}</p>
+              </Link>
+            );
+          })}
+        </nav>
       </s-section>
       <s-section heading="Store SEO score">
         {!scan ? (
@@ -628,8 +592,9 @@ export default function Dashboard() {
                 )}
               </div>
               <p className="sp-meta">
-                Checked {scan.productsScanned} products, {scan.collectionsScanned} collections and{" "}
-                {scan.pagesScanned} pages on {new Date(scan.scannedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                Checked {scan.productsScanned} {scan.productsScanned === 1 ? "product" : "products"},{" "}
+                {scan.collectionsScanned} {scan.collectionsScanned === 1 ? "collection" : "collections"} and{" "}
+                {scan.pagesScanned} {scan.pagesScanned === 1 ? "page" : "pages"} on {new Date(scan.scannedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
               </p>
               {totalOpen === 0 ? (
                 <s-badge tone="success" icon="check-circle-filled">No open issues</s-badge>
@@ -642,37 +607,18 @@ export default function Dashboard() {
               )}
               {totalOpen > 0 && (
                 <div className="sp-actions">
-                  {fixableCount > 0 && hasActivePayment && (
-                    <s-button variant="primary" onClick={() => setConfirmingFix(true)} {...(autofixing ? { loading: true } : {})}>
-                      Fix everything automatically
-                    </s-button>
-                  )}
-                  <s-button href="/app/fixes" variant={fixableCount > 0 && hasActivePayment ? "secondary" : "primary"}>
+                  <s-button href="/app/fixes" variant="primary">
                     Review issues
                   </s-button>
                 </div>
               )}
               {fixableCount > 0 && hasActivePayment && (
                 <p className="sp-meta">
-                  {fixableCount} of {totalOpen} open issue{totalOpen === 1 ? "" : "s"} can be fixed automatically. The rest need a look on the Fixes page.
+                  {fixableCount} of {totalOpen} open issue{totalOpen === 1 ? "" : "s"} already have a suggested fix. You check each one before it goes live.
                 </p>
               )}
             </div>
           </div>
-        )}
-
-        {confirmingFix && scan && fixableCount > 0 && hasActivePayment && (
-          <s-banner tone="warning" heading={`Fix ${fixableCount} issue${fixableCount === 1 ? "" : "s"} now?`}>
-            <s-paragraph>
-              This updates the titles, descriptions and image labels on your live store right away.
-              Want to look at each one first? Use "Review first" instead.
-            </s-paragraph>
-            <s-stack direction="inline" gap="small" alignItems="center">
-              <s-button variant="primary" onClick={runAutofix}>Yes, fix them</s-button>
-              <s-button onClick={() => setConfirmingFix(false)}>Cancel</s-button>
-              <s-button variant="tertiary" href="/app/fixes">Review first</s-button>
-            </s-stack>
-          </s-banner>
         )}
 
         {false && (
@@ -710,7 +656,7 @@ export default function Dashboard() {
           <>
             <div className="sp-tiles">
               <div className="sp-tile"><b>{totalOpen}</b><span>open issues</span></div>
-              <div className="sp-tile"><b>{fixableCount}</b><span>can be auto-fixed</span></div>
+              <div className="sp-tile"><b>{fixableCount}</b><span>with a suggested fix</span></div>
               <div className="sp-tile"><b>{impact.totalFixesApplied}</b><span>fixes applied so far</span></div>
             
             </div>
@@ -734,7 +680,7 @@ export default function Dashboard() {
           </li>
           <li>
             <span className="sp-step-n">2</span>
-            <div><b>Fix</b><p>Let AI write the text, write it yourself, or fix everything automatically. You approve each change.</p></div>
+            <div><b>Fix</b><p>Let AI write the text, or write it yourself. You approve every change before it goes live.</p></div>
           </li>
           <li>
             <span className="sp-step-n">3</span>

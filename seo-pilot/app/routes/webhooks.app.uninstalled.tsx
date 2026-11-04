@@ -1,36 +1,42 @@
 import type { ActionFunctionArgs } from "react-router";
-import { authenticate } from "../shopify.server";
+import { authenticateWebhook } from "../lib/webhook-auth.server";
 import db from "../db.server";
+import { withRetry } from "../lib/db-retry.server";
+import { clearPlanCache } from "../lib/billing.server";
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  const { shop, session, topic } = await authenticate.webhook(request);
-
+  // Verifies the HMAC; an invalid signature throws a 401 (intended).
+  const { shop, topic } = await authenticateWebhook(request);
   console.log(`Received ${topic} webhook for ${shop}`);
 
-  // Webhook requests can trigger multiple times and after an app has already been uninstalled.
-  // If this webhook already ran, the session may have been deleted previously.
-  if (session) {
-    await db.session.deleteMany({ where: { shop } });
-  }
+  clearPlanCache(shop);
 
-  // Clean up the store's data. The settings row is kept (with the Google
-  // connection and autopilot switched off) so the month's AI usage counter
+  // Idempotent: webhooks can fire twice or after the data is already gone, so
+  // this never depends on a session existing. The settings row is kept (with the
+  // Google connection and autopilot switched off) so the month's AI usage counter
   // survives an uninstall/reinstall; shop/redact deletes it completely later.
-  await db.seoIssue.deleteMany({ where: { shop } });
-  await db.seoScan.deleteMany({ where: { shop } });
-  await db.shopSettings.updateMany({
-    where: { shop },
-    data: {
-      gscRefreshToken: null,
-      gscSiteUrl: null,
-      gscConnectedAt: null,
-      gscLastCheckedAt: null,
-      gscClicks28d: null,
-      gscImpressions28d: null,
-      gscTopQueries: null,
-      autoOptimizeNew: false,
-    },
-  });
+  await withRetry(
+    () =>
+      db.$transaction([
+        db.session.deleteMany({ where: { shop } }),
+        db.seoIssue.deleteMany({ where: { shop } }),
+        db.seoScan.deleteMany({ where: { shop } }),
+        db.shopSettings.updateMany({
+          where: { shop },
+          data: {
+            gscRefreshToken: null,
+            gscSiteUrl: null,
+            gscConnectedAt: null,
+            gscLastCheckedAt: null,
+            gscClicks28d: null,
+            gscImpressions28d: null,
+            gscTopQueries: null,
+            autoOptimizeNew: false,
+          },
+        }),
+      ]),
+    "uninstalled",
+  );
 
-  return new Response();
+  return new Response(null, { status: 200 });
 };

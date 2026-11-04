@@ -5,7 +5,7 @@ import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
-import { checkPlan } from "../lib/billing.server";
+import { checkPlan, checkPlanCached } from "../lib/billing.server";
 import { REVIEW_MAX_PER_SEND, TIER_LABEL } from "../lib/plans";
 import {
   emailsUsedThisMonth,
@@ -22,7 +22,7 @@ import { DEFAULT_MESSAGE, DEFAULT_SUBJECT, REVIEW_PRESETS } from "../lib/review-
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { billing, session } = await authenticate.admin(request);
-  const { tier } = await checkPlan(billing);
+  const { tier } = await checkPlanCached(billing, session.shop);
   const limit = monthlyLimit(tier);
   const settings = await db.shopSettings.findUnique({ where: { shop: session.shop } });
   const stats = await reviewStats(session.shop);
@@ -273,15 +273,18 @@ export default function Reviews() {
       <PageStrip icon="star" title="Ask happy customers for a review" text="Send a short request by email and see who rates you." />
 
       {!d.configured && (
-        <s-banner tone="info" heading="You send these from your own email">
-          <s-paragraph>Paste your customers, press Create emails, then send each one from your own mail app with one click. Every rating link is tracked here.</s-paragraph>
+        <s-banner tone="info" heading="Metaglow does not send these emails for you">
+          <s-paragraph>
+            1. Paste your customers below and press Create emails. 2. For each customer, press Open in Gmail (or Outlook).
+            3. Press Send in your mail app. Nothing is sent until you press Send there. Every rating link is tracked here.
+          </s-paragraph>
         </s-banner>
       )}
 
       <s-section heading="Your results">
         <style>{CSS}</style>
         <div className="rv-tiles">
-          <div className="rv-tile"><div className="rv-num">{d.stats.sent}</div><div className="rv-lab">Emails sent</div></div>
+          <div className="rv-tile"><div className="rv-num">{d.stats.sent}</div><div className="rv-lab">{d.configured ? "Emails sent" : "Requests created"}</div></div>
           <div className="rv-tile"><div className="rv-num">{d.stats.clicked}</div><div className="rv-lab">Opened the rating page</div></div>
           <div className="rv-tile"><div className="rv-num">{d.stats.rated}</div><div className="rv-lab">Ratings received</div></div>
           <div className="rv-tile"><div className="rv-num">{average}<small>{d.stats.average ? " / 5" : ""}</small></div><div className="rv-lab">Average rating</div></div>
@@ -325,9 +328,9 @@ export default function Reviews() {
       </s-section>
 
       {prepared.length > 0 && (
-        <s-section heading={`Ready to send (${prepared.length})`}>
+        <s-section heading={`Not sent yet — ${prepared.length} ready`}>
           <s-stack direction="block" gap="small-300">
-            <s-text color="subdued">Open each one in Gmail or Outlook, or copy it and paste it into any mail or chat.</s-text>
+            <s-text color="subdued">Press Open in Gmail on each row, then press Send in Gmail. You can also copy the text and paste it into any mail or chat.</s-text>
             {prepared.map((p) => (
               <div className="rv-row" key={p.email}>
                 <div className="rv-who">

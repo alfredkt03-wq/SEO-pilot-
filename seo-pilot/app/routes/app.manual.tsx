@@ -12,30 +12,30 @@ const PROBLEMS: Array<{ name: string; meaning: string; action: string }> = [
     name: "Missing SEO title",
     meaning:
       "The headline Google shows for this page in search results is empty, so Google guesses one.",
-    action: "Fixed automatically. Check the wording if you like.",
+    action: "A fix is suggested for you to review. Check the wording if you like.",
   },
   {
     name: "SEO title too short / too long",
     meaning:
       "Good titles are roughly 10–70 characters. Longer ones get cut off with “…” in Google.",
-    action: "Fixed automatically.",
+    action: "A fix is suggested for you to review.",
   },
   {
     name: "Missing meta description",
     meaning:
       "The 1–2 sentence blurb under your headline in Google is empty. A good blurb makes people click.",
-    action: "Fixed automatically (or written by AI on paid plans).",
+    action: "A fix is suggested (or written by AI on paid plans).",
   },
   {
     name: "Meta description too short / too long",
     meaning: "Good blurbs are roughly 120–160 characters. Longer ones get cut off.",
-    action: "Fixed automatically.",
+    action: "A fix is suggested for you to review.",
   },
   {
     name: "Missing alt text",
     meaning:
       "An image has no short written description. Google can't “see” pictures, and screen readers for blind visitors need this too.",
-    action: "Fixed automatically.",
+    action: "A fix is suggested for you to review.",
   },
   {
     name: "Oversized image",
@@ -68,7 +68,7 @@ const PROBLEMS: Array<{ name: string; meaning: string; action: string }> = [
 ];
 
 const PAGES: Array<{ name: string; body: string }> = [
-  { name: "Dashboard", body: "Your score, your scan button, and the one-click fix. Start here." },
+  { name: "Dashboard", body: "Your score, your scan button, and a shortcut to every tool. Start here." },
   { name: "Fixes", body: "The full list of problems found. Tick the ones you want and apply them." },
   { name: "Editor", body: "Change any product, collection or page title and description by hand." },
   { name: "Content check", body: "Premium and above. Reads the text on your products, collections and pages and tells you where to add more words or make it clearer, worst first. You edit the text in Shopify." },
@@ -117,9 +117,8 @@ export default function Manual() {
             matter most, so those are the ones to fix first.
           </s-list-item>
           <s-list-item>
-            <s-text type="strong">4. Fix the easy ones.</s-text> Click “Fix everything automatically”.
-            It asks you to confirm first. Or choose “Review first” to look at each fix before it goes
-            live.
+            <s-text type="strong">4. Fix what Google can't see.</s-text> Open Fixes, tick the ones you
+            want and apply them. You see each suggested text before it goes live.
           </s-list-item>
           <s-list-item>
             <s-text type="strong">5. Handle what's left.</s-text> Open <s-link href="/app/fixes">Fixes</s-link>{" "}
@@ -213,7 +212,7 @@ export default function Manual() {
         <s-unordered-list>
           <s-list-item>Pick a plan (free trial)</s-list-item>
           <s-list-item>Scan your store</s-list-item>
-          <s-list-item>Click “Fix everything automatically”</s-list-item>
+          <s-list-item>Open Fixes and apply the suggestions you approve</s-list-item>
         </s-unordered-list>
         <s-button variant="primary" href="/app">
           Go to dashboard

@@ -4,7 +4,7 @@ import { useFetcher, useLoaderData } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
-import { checkPlan, requirePlan } from "../lib/billing.server";
+import { checkPlan, checkPlanCached, requirePlan } from "../lib/billing.server";
 import { TRIAL_DAYS } from "../lib/plans";
 import {
   insertLink,
@@ -17,8 +17,8 @@ import {
 import { PageStrip } from "../components/PageStrip";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  const { admin, billing } = await authenticate.admin(request);
-  const { hasActivePayment } = await checkPlan(billing);
+  const { admin, billing, session } = await authenticate.admin(request);
+  const { hasActivePayment } = await checkPlanCached(billing, session.shop);
   if (!hasActivePayment) return { hasActivePayment, suggestions: [] as LinkSuggestion[] };
   const suggestions = suggestLinks(await loadNodes(admin));
   return { hasActivePayment, suggestions };
@@ -101,7 +101,7 @@ export default function InternalLinks() {
   return (
     <s-page heading="Internal links">
       <PageStrip icon="link" title="Link your own pages together" text="Add missing links between pages so Google can find more of your store." />
-      <s-link slot="breadcrumb-actions" href="/app/tools">Tools</s-link>
+      <s-link slot="breadcrumb-actions" href="/app">Dashboard</s-link>
       <s-section heading="What this does">
         <s-paragraph>
           Internal links are links from one page of your store to another. Google uses them to find

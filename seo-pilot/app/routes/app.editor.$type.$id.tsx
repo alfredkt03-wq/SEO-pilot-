@@ -8,7 +8,7 @@ import db from "../db.server";
 import { setNoindex, setResourceSeo } from "../lib/apply-fix.server";
 import { recordFixesApplied } from "../lib/impact.server";
 import { TRIAL_DAYS } from "../lib/plans";
-import { checkPlan, getPricing, getShopMarket, isIndianStore, requirePlan } from "../lib/billing.server";
+import { checkPlan, checkPlanCached, getPricing, getShopMarket, isIndianStore, requirePlan } from "../lib/billing.server";
 import {
   aiConfigured,
   aiWriteMetaDescription,
@@ -77,7 +77,7 @@ export const loader = async ({ request, params }: LoaderFunctionArgs) => {
       }`,
       { variables: { id: gid } },
     ),
-    checkPlan(billing),
+    checkPlanCached(billing, session.shop),
     getPricing(admin, session.shop),
   ]);
   const { hasActivePayment, tier } = planStatus;

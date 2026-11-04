@@ -62,10 +62,10 @@ export default function Billing() {
           </s-paragraph>
         </s-banner>
       ) : (
-        <s-banner heading={`Every plan starts with a ${TRIAL_DAYS}-day free trial`} tone="info">
+        <s-banner heading={`Launch prices — and a ${TRIAL_DAYS}-day free trial on every plan`} tone="info">
           <s-paragraph>
-            No permanent free plan — pick the tier that fits your store below and try it free for{" "}
-            {TRIAL_DAYS} days before you're charged.
+            We just opened, so plans are at their lowest launch prices. Pick the tier that fits
+            your store below and try it free for {TRIAL_DAYS} days before you're charged.
           </s-paragraph>
         </s-banner>
       )}

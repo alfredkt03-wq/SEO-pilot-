@@ -97,6 +97,25 @@ export async function checkPlan(billing: Billing): Promise<PlanStatus> {
   return { tier: hasActivePayment && best === "free" ? "basic" : hasActivePayment ? best : "free", hasActivePayment, planName };
 }
 
+// Page loaders used to ask Shopify for the plan on every load. This keeps the
+// answer per shop for a short while (long if paid, a few seconds if not, so a
+// merchant who just approved a plan sees it quickly). Anything that WRITES still
+// uses requirePlan / checkPlan, which are always live.
+const planCache = new Map<string, { status: PlanStatus; expires: number }>();
+
+export async function checkPlanCached(billing: Billing, shop: string): Promise<PlanStatus> {
+  const hit = planCache.get(shop);
+  if (hit && hit.expires > Date.now()) return hit.status;
+  const status = await checkPlan(billing);
+  if (planCache.size > 2000) planCache.clear();
+  planCache.set(shop, { status, expires: Date.now() + (status.hasActivePayment ? 5 * 60_000 : 10_000) });
+  return status;
+}
+
+export function clearPlanCache(shop: string) {
+  planCache.delete(shop);
+}
+
 // Starts (or switches to) a subscription — including its free trial — at
 // the price that matches the shop's billing currency. Redirects the
 // merchant to Shopify's confirmation page; approving it replaces any

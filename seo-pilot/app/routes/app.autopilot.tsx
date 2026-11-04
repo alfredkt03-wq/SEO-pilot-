@@ -5,13 +5,13 @@ import { useAppBridge } from "@shopify/app-bridge-react";
 import { boundary } from "@shopify/shopify-app-react-router/server";
 import { authenticate } from "../shopify.server";
 import db from "../db.server";
-import { checkPlan } from "../lib/billing.server";
+import { checkPlan, checkPlanCached } from "../lib/billing.server";
 import { canAutoWrite, canWatch } from "../lib/autopilot.server";
 import { PageStrip } from "../components/PageStrip";
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   const { billing, session } = await authenticate.admin(request);
-  const { tier } = await checkPlan(billing);
+  const { tier } = await checkPlanCached(billing, session.shop);
   const s = await db.shopSettings.findUnique({ where: { shop: session.shop }, select: { autoOptimizeNew: true } });
   return { tier, watch: canWatch(tier), auto: canAutoWrite(tier), enabled: Boolean(s?.autoOptimizeNew) };
 };
@@ -44,7 +44,7 @@ export default function Autopilot() {
   return (
     <s-page heading="New product autopilot">
       <PageStrip icon="bolt" title="Every new product, checked for you" text="Metaglow looks at each new product the moment you add it." />
-      <s-link slot="breadcrumb-actions" href="/app/tools">Tools</s-link>
+      <s-link slot="breadcrumb-actions" href="/app">Dashboard</s-link>
       <s-section heading="What this does">
         <s-paragraph>
           Every time you add a product, Metaglow SEO checks it for you. Most new products go live
