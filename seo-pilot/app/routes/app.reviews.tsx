@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import type { ActionFunctionArgs, HeadersFunction, LoaderFunctionArgs } from "react-router";
 import { useFetcher, useLoaderData, useRouteError } from "react-router";
 import { useAppBridge } from "@shopify/app-bridge-react";
@@ -200,12 +200,17 @@ export default function Reviews() {
   const [opened, setOpened] = useState<Set<string>>(new Set());
   const gmailUrl = (p: { email: string; subject: string; text: string }) =>
     `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(p.email)}&su=${encodeURIComponent(p.subject)}&body=${encodeURIComponent(p.text)}`;
+  // Per-customer edits: the merchant can rewrite one customer's email before
+  // opening it. The rating link stays in the text, so keep that line.
+  const [edits, setEdits] = useState<Record<string, { subject: string; text: string }>>({});
+  const [editing, setEditing] = useState<string | null>(null);
+  const mailFor = (p: { email: string; subject: string; text: string }) => ({ ...p, ...(edits[p.email] ?? {}) });
   const markOpened = (email: string) => setOpened((prev) => new Set(prev).add(email));
   const openNext = () => {
     const next = prepared.find((p) => !opened.has(p.email));
     if (!next) return;
     markOpened(next.email);
-    window.open(gmailUrl(next), "_blank", "noopener");
+    window.open(gmailUrl(mailFor(next)), "_blank", "noopener");
   };
   const [reviewLink, setReviewLink] = useState(d.reviewLink);
   const [replyTo, setReplyTo] = useState(d.replyTo);
@@ -229,6 +234,8 @@ export default function Reviews() {
       shopify.toast.show(bits.join(" · "));
       setPrepared(p.items);
       setOpened(new Set());
+      setEdits({});
+      setEditing(null);
       if (p.items.length > 0) setRecipients("");
     } else if (r.ok && "summary" in r && r.summary) {
       const s = r.summary;
@@ -349,6 +356,19 @@ export default function Reviews() {
             onInput={(e: any) => setMessage(e.target.value)}
             details="Write it like you would to a customer. Use {store} for your store name and {name} for their first name. The greeting, the star rating and the unsubscribe link are added automatically."
           />
+          <s-stack direction="inline" gap="base" alignItems="center">
+            <s-button
+              variant="secondary"
+              disabled={!dirty}
+              {...(tplFetcher.state !== "idle" ? { loading: true } : {})}
+              onClick={() => tplFetcher.submit({ intent: "template", subject, message }, { method: "post" })}
+            >
+              Save my email text
+            </s-button>
+            <s-text color="subdued">
+              {dirty ? "Unsaved changes — also saved when you create or send." : "Saved. It is used for every request."}
+            </s-text>
+          </s-stack>
           <s-checkbox
             name="consent"
             label="These customers have bought from my store"
@@ -384,45 +404,70 @@ export default function Reviews() {
               </s-button>
               <s-text color="subdued">{opened.size} of {prepared.length} opened</s-text>
             </s-stack>
-            {prepared.map((p) => (
-              <div className="rv-row" key={p.email}>
-                <div className="rv-who">
-                  <b>{p.name ? `${p.name} · ` : ""}{p.email}{opened.has(p.email) ? " · opened" : ""}</b>
-                  <span>{p.subject}</span>
-                </div>
-                <s-stack direction="inline" gap="small-300">
-                  <a
-                    className="rv-open"
-                    target="_blank"
-                    rel="noreferrer"
-                    href={gmailUrl(p)}
-                    onClick={() => markOpened(p.email)}
-                  >
-                    Open in Gmail
-                  </a>
-                  <a
-                    className="rv-open rv-alt"
-                    target="_top"
-                    href={`mailto:${p.email}?subject=${encodeURIComponent(p.subject)}&body=${encodeURIComponent(p.text)}`}
-                  >
-                    Outlook / other
-                  </a>
-                  <s-button
-                    variant="tertiary"
-                    onClick={async () => {
-                      try {
-                        await navigator.clipboard.writeText(`Subject: ${p.subject}\n\n${p.text}`);
-                        shopify.toast.show("Copied");
-                      } catch {
-                        shopify.toast.show("Couldn't copy — use Open in Gmail", { isError: true });
-                      }
-                    }}
-                  >
-                    Copy
-                  </s-button>
-                </s-stack>
-              </div>
-            ))}
+            {prepared.map((orig) => {
+              const p = mailFor(orig);
+              return (
+                <Fragment key={orig.email}>
+                  <div className="rv-row">
+                    <div className="rv-who">
+                      <b>{orig.name ? `${orig.name} · ` : ""}{orig.email}{opened.has(orig.email) ? " · opened" : ""}</b>
+                      <span>{p.subject}</span>
+                    </div>
+                    <s-stack direction="inline" gap="small-300">
+                      <a
+                        className="rv-open"
+                        target="_blank"
+                        rel="noreferrer"
+                        href={gmailUrl(p)}
+                        onClick={() => markOpened(orig.email)}
+                      >
+                        Open in Gmail
+                      </a>
+                      <a
+                        className="rv-open rv-alt"
+                        target="_top"
+                        href={`mailto:${p.email}?subject=${encodeURIComponent(p.subject)}&body=${encodeURIComponent(p.text)}`}
+                      >
+                        Outlook / other
+                      </a>
+                      <s-button variant="tertiary" onClick={() => setEditing(editing === orig.email ? null : orig.email)}>
+                        {editing === orig.email ? "Done" : "Edit"}
+                      </s-button>
+                      <s-button
+                        variant="tertiary"
+                        onClick={async () => {
+                          try {
+                            await navigator.clipboard.writeText(`Subject: ${p.subject}\n\n${p.text}`);
+                            shopify.toast.show("Copied");
+                          } catch {
+                            shopify.toast.show("Couldn't copy — use Open in Gmail", { isError: true });
+                          }
+                        }}
+                      >
+                        Copy
+                      </s-button>
+                    </s-stack>
+                  </div>
+                  {editing === orig.email && (
+                    <s-stack direction="block" gap="small-300">
+                      <s-text-field
+                        label={`Subject for ${orig.email}`}
+                        value={p.subject}
+                        maxLength={150}
+                        onInput={(e: any) => setEdits((prev) => ({ ...prev, [orig.email]: { subject: e.target.value, text: p.text } }))}
+                      />
+                      <s-text-area
+                        label="Message (keep the rating link line)"
+                        rows={8}
+                        value={p.text}
+                        onInput={(e: any) => setEdits((prev) => ({ ...prev, [orig.email]: { subject: p.subject, text: e.target.value } }))}
+                        details="Only this customer's email changes."
+                      />
+                    </s-stack>
+                  )}
+                </Fragment>
+              );
+            })}
           </s-stack>
         </s-section>
       )}
