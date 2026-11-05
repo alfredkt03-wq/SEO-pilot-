@@ -179,6 +179,11 @@ export default function Report() {
               )}
             </s-section>
           )}
+          {!agency && (
+            <s-paragraph>
+              <s-text color="subdued">Made with Metaglow SEO — apps.shopify.com/seo-pilot-1</s-text>
+            </s-paragraph>
+          )}
         </>
       )}
 
