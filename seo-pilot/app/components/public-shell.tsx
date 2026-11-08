@@ -21,16 +21,16 @@ export function PublicFonts() {
 const styles = `
   body { margin: 0; }
   .pp-root {
-    --bg: #faf6ee;
-    --surface: #f2eadb;
-    --border: #e2d6c1;
+    --bg: #fffaf6;
+    --surface: #fff0e5;
+    --border: #f0d8c5;
     --text: #2b2016;
     --text-dim: #5e4f3f;
     --text-faint: #7d6d5a;
     --deep: #261b12;
-    --gold: #b8893b;
-    --gold-light: #d9b36a;
-    --gold-dark: #8f6726;
+    --gold: #ea6a24;
+    --gold-light: #f59a6a;
+    --gold-dark: #c2410c;
     font-family: "Source Sans 3", -apple-system, BlinkMacSystemFont, sans-serif;
     background: var(--bg);
     color: var(--text);

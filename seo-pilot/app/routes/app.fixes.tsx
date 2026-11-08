@@ -254,7 +254,7 @@ type Row = RedactableSeoIssueRow & { canApply: boolean; aiWritable: boolean };
 
 const FIX_CSS = `
 .fx-strip{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:16px 18px;border-radius:8px;color:#202223;background:#f6f6f7;border:1px solid #e1e3e5}
-.fx-mark{width:36px;height:36px;border-radius:8px;background:#e8f3ef;border:1px solid #c6e0d6;color:#0f6b57;display:grid;place-items:center;flex:none}
+.fx-mark{width:36px;height:36px;border-radius:8px;background:#fff1e8;border:1px solid #f6d3bd;color:#c2410c;display:grid;place-items:center;flex:none}
 .fx-text{display:flex;flex-direction:column;gap:2px;min-width:200px;flex:1}
 .fx-text b{font-size:15px;font-weight:600}
 .fx-text span{font-size:13px;color:#616a75}

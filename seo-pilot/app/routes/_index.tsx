@@ -124,13 +124,13 @@ export default function Index() {
                 </div>
                 <div className="pp-mock-score">
                   <svg width="84" height="84" viewBox="0 0 84 84" aria-hidden="true">
-                    <circle cx="42" cy="42" r="34" fill="none" stroke="#e2d6c1" strokeWidth="9" />
+                    <circle cx="42" cy="42" r="34" fill="none" stroke="#f0d8c5" strokeWidth="9" />
                     <circle
                       cx="42"
                       cy="42"
                       r="34"
                       fill="none"
-                      stroke="#b8893b"
+                      stroke="#ea6a24"
                       strokeWidth="9"
                       strokeLinecap="round"
                       strokeDasharray="213.6"

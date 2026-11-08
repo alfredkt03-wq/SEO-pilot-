@@ -13,13 +13,13 @@ const CSS = `
   .cp-stars input { position: absolute; opacity: 0; pointer-events: none; }
   .cp-stars label { font-size: 44px; line-height: 1; cursor: pointer; color: #d5d8db; padding: 0 2px; }
   .cp-stars label:hover, .cp-stars label:hover ~ label, .cp-stars input:checked ~ label, .cp-stars input:checked + label { color: #f5a623; }
-  .cp-stars input:focus-visible + label { outline: 2px solid #0f6b57; outline-offset: 2px; border-radius: 4px; }
+  .cp-stars input:focus-visible + label { outline: 2px solid #c2410c; outline-offset: 2px; border-radius: 4px; }
   .cp-scale { display: flex; justify-content: space-between; font-size: 12px; color: #616a75; margin: 0 0 18px; max-width: 288px; }
   .cp-card textarea { width: 100%; box-sizing: border-box; min-height: 96px; border: 1px solid #c9cccf; border-radius: 8px; padding: 10px 12px; font: inherit; font-size: 15px; resize: vertical; margin: 6px 0 16px; }
   .cp-card label.cp-label { font-size: 14px; font-weight: 600; }
-  .cp-btn { display: inline-block; background: #0f6b57; color: #fff; border: 0; border-radius: 8px; padding: 12px 22px; font: inherit; font-weight: 600; font-size: 15px; cursor: pointer; text-decoration: none; }
+  .cp-btn { display: inline-block; background: #c2410c; color: #fff; border: 0; border-radius: 8px; padding: 12px 22px; font: inherit; font-weight: 600; font-size: 15px; cursor: pointer; text-decoration: none; }
   .cp-btn:hover { background: #0c5846; }
-  .cp-btn.light { background: #fff; color: #0f6b57; border: 1px solid #0f6b57; }
+  .cp-btn.light { background: #fff; color: #c2410c; border: 1px solid #c2410c; }
   .cp-error { color: #b42318; font-size: 14px; margin: 0 0 12px; }
   .cp-foot { font-size: 12px; color: #8c9196; margin-top: 20px; }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }

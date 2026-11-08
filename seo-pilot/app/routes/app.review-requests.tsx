@@ -135,7 +135,7 @@ function when(iso: string): string {
 const CSS = `
 .rq-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
 .rq-tab{font-size:13px;font-weight:600;border:1px solid #e1e3e5;border-radius:999px;padding:5px 12px;color:#3d4247;text-decoration:none;background:#fff}
-.rq-tab.on{background:#e8f3ef;border-color:#c6e0d6;color:#0f6b57}
+.rq-tab.on{background:#fff1e8;border-color:#f6d3bd;color:#c2410c}
 .rq-tab span{font-weight:500;color:#616a75;margin-left:4px}
 .rq-row{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:12px 0;border-top:1px solid #edeeef}
 .rq-row:first-child{border-top:0}
@@ -147,7 +147,7 @@ const CSS = `
 .rq-stars{color:#b7791f;letter-spacing:1px;font-size:14px;white-space:nowrap}
 .rq-pill{font-size:12px;font-weight:600;border-radius:999px;padding:2px 10px;white-space:nowrap}
 .rq-pill.sent{background:#f1f2f3;color:#616a75}
-.rq-pill.open{background:#e8f3ef;color:#0f6b57}
+.rq-pill.open{background:#fff1e8;color:#c2410c}
 .rq-pill.bad{background:#fdecea;color:#b42318}
 .rq-pill.warn{background:#fff4e5;color:#8a5a00}
 .rq-pager{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-top:14px}

@@ -15,7 +15,7 @@ const ICONS: Record<string, string> = {
 
 const CSS = `
 .ps-strip{display:flex;align-items:center;gap:14px;padding:14px 16px;margin-bottom:12px;border-radius:8px;color:#202223;background:#f6f6f7;border:1px solid #e1e3e5}
-.ps-mark{width:34px;height:34px;border-radius:8px;background:#e8f3ef;border:1px solid #c6e0d6;color:#0f6b57;display:grid;place-items:center;flex:none}
+.ps-mark{width:34px;height:34px;border-radius:8px;background:#fff1e8;border:1px solid #f6d3bd;color:#c2410c;display:grid;place-items:center;flex:none}
 .ps-text{display:flex;flex-direction:column;gap:2px;min-width:0}
 .ps-text b{font-size:15px;font-weight:600;color:#202223}
 .ps-text span{font-size:13px;color:#616a75;line-height:1.4}

@@ -171,9 +171,9 @@ const CSS = `
 .rv-stars{color:#b7791f;letter-spacing:1px;font-size:14px;white-space:nowrap}
 .rv-pill{font-size:12px;font-weight:600;border-radius:999px;padding:2px 10px;white-space:nowrap}
 .rv-alt{background:#fff;color:#3d4247;border-color:#c9cccf}
-.rv-open{font-size:13px;font-weight:600;color:#0f6b57;text-decoration:none;padding:6px 10px;border:1px solid #c6e0d6;border-radius:6px;background:#e8f3ef;white-space:nowrap}
+.rv-open{font-size:13px;font-weight:600;color:#c2410c;text-decoration:none;padding:6px 10px;border:1px solid #f6d3bd;border-radius:6px;background:#fff1e8;white-space:nowrap}
 .rv-pill.sent{background:#f1f2f3;color:#616a75}
-.rv-pill.open{background:#e8f3ef;color:#0f6b57}
+.rv-pill.open{background:#fff1e8;color:#c2410c}
 .rv-pill.bad{background:#fdecea;color:#b42318}
 .rv-mail{border:1px solid #e1e3e5;border-radius:8px;background:#f6f6f7;padding:12px}
 .rv-mail-card{background:#fff;border:1px solid #e1e3e5;border-radius:8px;padding:14px;font-size:12px;line-height:1.5;color:#3d4247}
